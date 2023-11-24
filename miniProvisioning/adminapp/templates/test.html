@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test</title>
+</head>
+<body>
+    <form action="{% url 'start_ec2_instance' %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="Start EC2 Instance">
+    </form>
+</body>
+</html>
