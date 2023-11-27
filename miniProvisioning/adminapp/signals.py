@@ -8,7 +8,7 @@ import os
 def create_user_folder(sender, instance, created, **kwargs):
     if created:
         # 폴더를 생성할 디렉터리 경로 설정
-        base_folder = "/path/to/base/directory/"
+        base_folder = "/templates/index/"
 
         # 사용자의 사원번호를 폴더명으로 사용
         user_folder = os.path.join(base_folder, str(instance.employee_number))
