@@ -1,8 +1,10 @@
 import boto3
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.shortcuts import render
 from decouple import config
+from django.contrib.auth import login
+from .forms import CustomUserCreationForm
 
 def home(request):
     return render(request, 'test.html', context={})
@@ -34,3 +36,14 @@ def start_ec2_instance(request):
     instance_id = response['Instances'][0]['InstanceId']
 
     return HttpResponse(f"EC2 인스턴스가 시작되었습니다. 인스턴스 ID: {instance_id}")
+
+    def signup(request):
+        if request.method == 'POST':
+            form = CustomUserCreationForm(request.POST)
+            if form.is_valid():
+                user = form.save()
+                login(request, user)
+                return redirect('home')  # 회원가입 후 리다이렉트할 페이지
+        else:
+            form = CustomUserCreationForm()
+        return render(request, 'signup.html', {'form': form})
