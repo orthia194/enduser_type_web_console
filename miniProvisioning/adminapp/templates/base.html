@@ -1,0 +1,31 @@
+<!-- yourapp/templates/base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Your Site{% endblock %}</title>
+</head>
+<body>
+
+    <div id="header">
+        <h1>{% block header %}Your Site{% endblock %}</h1>
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}">홈</a></li>
+                <li><a href="{% url 'login' %}">로그인</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <div id="footer">
+        <p>&copy; 2023 Your Site. All rights reserved.</p>
+    </div>
+
+</body>
+</html>

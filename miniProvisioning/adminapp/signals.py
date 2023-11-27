@@ -1,19 +1,24 @@
-# signals.py
+# adminapp/signals.py
 
+import os
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import CustomUser
-import os
+from django.contrib.auth import get_user_model
 
-@receiver(post_save, sender=CustomUser)
+@receiver(post_save, sender=get_user_model())
 def create_user_folder(sender, instance, created, **kwargs):
+    """
+    사용자가 생성될 때 호출되는 시그널 핸들러.
+    사용자가 생성되면 폴더를 생성합니다.
+    """
     if created:
-        # 폴더를 생성할 디렉터리 경로 설정
-        base_folder = "/path/to/base/directory/"
+        folder_name = instance.username  # 또는 instance.id, instance.email 등을 사용할 수 있습니다.
+        folder_path = os.path.join('index', folder_name)
+        
+        try:
+            os.makedirs(folder_path)
+            print(f"폴더가 생성되었습니다: {folder_path}")
+        except OSError as e:
+            print(f"폴더 생성 오류: {e}")
 
-        # 사용자의 사원번호를 폴더명으로 사용
-        user_folder = os.path.join(base_folder, str(instance.employee_number))
-
-        # 폴더를 생성
-        os.makedirs(user_folder, exist_ok=True)
 

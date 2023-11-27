@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -76,11 +77,20 @@ WSGI_APPLICATION = 'miniProvisioning.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'member',
+        'USER': 'admin',
+        'PASSWORD': 'wkdrbgus',
+        'HOST': 'database-1.c26odpmo5jsk.ap-northeast-2.rds.amazonaws.com',
+        'PORT': '3306',
     }
 }
 
+# 민감한 정보에 대해 환경 변수 사용
+DATABASES['default']['USER'] = os.environ.get('DB_USER', 'admin')
+DATABASES['default']['PASSWORD'] = os.environ.get('DB_PASSWORD', 'wkdrbgus')
+DATABASES['default']['HOST'] = os.environ.get('DB_HOST', 'database-1.c26odpmo5jsk.ap-northeast-2.rds.amazonaws.com')
+DATABASES['default']['PORT'] = os.environ.get('DB_PORT', '3306')
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
