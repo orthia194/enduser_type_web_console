@@ -7,20 +7,68 @@ from .forms import MemberForm
 from .models import Member
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import LoginView
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse_lazy
+from django.utils.html import format_html
+from .models import Member
+from django.views.decorators.csrf import csrf_exempt
+ 
+@csrf_exempt
+def loginCheck(request):
+    request.session['username'] = ''
+    _ID = request.POST.get('id')
+    _PASSWORD = request.POST.get('password')
+
+    try:
+        getUserInfoforID = Member.objects.get(id=_ID)
+        if _ID == 'admin':
+            request.session['username'] = _ID
+            return admin_view(request)  # admin_view를 직접 호출
+        else:
+            return render(request, 'test.html')
+    except Member.DoesNotExist:
+        return render(request, 'login.html')
+    except Exception as e:
+        return render(request, 'login.html')
 
 class CustomLoginView(LoginView):
     template_name = 'login.html'
-    success_url = reverse_lazy('test')
+
+    def get_success_url(self):
+        return reverse_lazy('test')
 
     def form_invalid(self, form):
         messages.error(self.request, 'Invalid username or password. Please try again.')
         return super().form_invalid(form)
 
-@login_required
+#@user_passes_test(lambda u: u.is_staff, login_url='login')
+def admin_view(request):
+    print(request.session.get('username'))
+
+    if request.session.get('username') == 'admin':
+        print('a')
+        users = {}
+        # 세션에서 'username' 키의 값이 'admin'인 경우
+        users['users'] = Member.objects.all()
+        
+        print(users)
+        return render(request, 'admin_view.html', users)
+    else:
+        messages.error(request, '권한이 없습니다.')
+    return redirect('login')
+
+#@user_passes_test(lambda u: u.is_staff, login_url='login')
+def delete_user(request, user_id):
+    try:
+        user = Member.objects.get(id=user_id)
+        user.delete()
+        return redirect('admin_view')
+    except Member.DoesNotExist:
+        return redirect('admin_view')
+
 def home(request):
     return render(request, 'test.html')
 
