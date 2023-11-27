@@ -1,0 +1,11 @@
+<!-- yourapp/templates/success.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}회원 가입 성공 - Your Site{% endblock %}
+
+{% block content %}
+  <h2>회원 가입 성공!</h2>
+  <p>회원 가입이 성공적으로 완료되었습니다.</p>
+  <p><a href="{% url 'login' %}">로그인 페이지로 이동</a></p>
+{% endblock %}
