@@ -6,4 +6,4 @@ class AdminappConfig(AppConfig):
     name = 'adminapp'
 
     def ready(self):
-            import adminapp.signals  # 신호 핸들러 등록
+        import adminapp.signals
