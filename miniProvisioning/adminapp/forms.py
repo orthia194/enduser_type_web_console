@@ -1,10 +1,9 @@
 # forms.py
 
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser
+from .models import Member
 
-class CustomUserCreationForm(UserCreationForm):
+class MemberForm(forms.ModelForm):
     class Meta:
-        model = CustomUser
-        fields = UserCreationForm.Meta.fields + ('employee_number', )
+        model = Member
+        fields = ['id', 'email', 'password']
