@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC2 인스턴스</title>
+</head>
+<body>
+    <h1>EC2 인스턴스 관리</h1>
+    
+    <form action="{% url 'start_ec2_instance' %}" method="post" target="_blank">
+        {% csrf_token %}
+        <input type="submit" value="Start EC2 Instance">
+    </form>
+
+    <h2>EC2 인스턴스 목록</h2>
+    <ul>
+        {% for reservation in instances.Reservations %}
+        {% for instance in reservation.Instances %}
+        <li>
+            <p><span>인스턴스 ID :</span><span>{{ instance.InstanceId }}</span></p>
+            {% for tag in instance.Tags %}
+                {% if tag.Key == 'Name' %}
+                    <strong>이름:</strong> {{ tag.Value }}<br>
+                {% endif %}
+            {% endfor %}
+            <strong>인스턴스 유형:</strong> {{ instance.InstanceType }}<br>
+            <strong>퍼블릭 IP:</strong> {% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}<br>
+            <strong>프라이빗 IP:</strong> {% if instance.PrivateIpAddress %}{{ instance.PrivateIpAddress }}{% else %}N/A{% endif %}<br>
+            <strong>고객:</strong> {% for tag in instance.Tags %}{% if tag.Key == 'Customer' %}{{ tag.Value }}{% endif %}{% endfor %}<br>
+            <strong>상태:</strong> {{ instance.State.Name }}<br>
+        </li>
+        {% endfor %}
+        {% endfor %}
+    </ul>
+</body>
+</html>

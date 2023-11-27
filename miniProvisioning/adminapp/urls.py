@@ -4,6 +4,10 @@ from django.contrib.auth.views import LoginView
 from . import views
 
 urlpatterns = [
+    path('', TemplateView.as_view(template_name='base.html'), name='home'),
+    path('test/', views.home, name='test'),
+    path('instance_list/', views.list_ec2_instances, name='instance_list'),
+    path('signup/', views.signup, name='signup'),
     path('', home, name='home'),
     path('test/', home, name='test'),
     path('signup/', signup, name='signup'),
