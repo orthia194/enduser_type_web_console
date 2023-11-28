@@ -12,6 +12,7 @@ from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 from .utils import check_existing_id, check_existing_email
 
+
 @csrf_exempt
 def loginCheck(request):
     request.session['username'] = ''
