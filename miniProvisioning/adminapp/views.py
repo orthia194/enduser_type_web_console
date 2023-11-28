@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 from .utils import check_existing_id, check_existing_email
+from django.contrib.auth.hashers import check_password
 
 
 @csrf_exempt
@@ -18,19 +19,16 @@ def loginCheck(request):
     request.session['username'] = ''
     _ID = request.POST.get('id')
     _PASSWORD = request.POST.get('password')
-    print(_PASSWORD)
-    print(_ID)
 
     try:
         getUserInfoforID = Member.objects.get(id=_ID)
-
-        if _ID ==  'admin' and getUserInfoforID.password == _PASSWORD :
+        if _ID == 'admin' and check_password(_PASSWORD, getUserInfoforID.password):
             request.session['username'] = _ID
             return admin_view(request)
-
-        elif getUserInfoforID.password == _PASSWORD :
+        elif check_password(_PASSWORD, getUserInfoforID.password):
             return render(request, 'test.html')
-        
+        else:
+            return render(request, 'login.html')
     except Member.DoesNotExist:
         return render(request, 'login.html')
     except Exception as e:
