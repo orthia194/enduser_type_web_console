@@ -1,22 +1,16 @@
-import boto3
+import boto3, os
+from .forms import MemberForm
+from .models import Member 
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
 from decouple import config
-from .forms import MemberForm
-from .models import Member
-from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.utils.html import format_html
-from .models import Member
 from django.views.decorators.csrf import csrf_exempt
 from .utils import check_existing_id, check_existing_email
-import os
 
 @csrf_exempt
 def loginCheck(request):
