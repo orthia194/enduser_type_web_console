@@ -12,9 +12,6 @@ from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 from .utils import check_existing_id, check_existing_email
 
-def home(request):
-    return render(request, 'test.html', context={})
-
 @csrf_exempt
 def loginCheck(request):
     request.session['username'] = ''
@@ -69,7 +66,8 @@ def delete_user(request, user_id):
         return redirect('admin_view')
 from django.contrib.auth import login
 
-
+def home(request):
+    return render(request, 'test.html', context={})
 
 def start_ec2_instance(request):
     # AWS 자격 증명 설정
