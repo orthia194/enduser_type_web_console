@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC2 인스턴스</title>
+</head>
+<body>
+    <h1>EC2 인스턴스 생성</h1>
+    
+    <form action="{% url 'start_ec2_instance' %}" method="post" target="_blank">
+        {% csrf_token %}
+        <label for="tag_instance_name">인스턴스 유형 :</label>
+        <select id="instance_type" name="instance_type">
+            <option value="t2.nano">t2.nano</option>
+            <option value="t2.micro">t2.micro</option>
+        </select><br><br>
+        <label for="tag_instance_name">인스턴스 이름 :</label>
+        <input type="text" id="tag_instance_name" name="tag_instance_name"><br><br>
+        <label for="tag_instance_hname">서함 :</label>
+        <input type="text" id="tag_instance_hname" name="tag_instance_hname"><br><br>
+        <label for="tag_instance_pnumber">전화번호 :</label>
+        <input type="text" id="tag_instance_pnumber" name="tag_instance_pnumber"><br><br>
+        <label for="tag_instance_addr">주소 :</label>
+        <input type="text" id="tag_instance_addr" name="tag_instance_addr"><br><br>
+        <input type="submit" value="Start EC2 Instance">
+    </form>
+</body>
+</html>

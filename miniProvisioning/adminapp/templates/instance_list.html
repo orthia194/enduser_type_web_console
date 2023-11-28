@@ -8,10 +8,7 @@
 <body>
     <h1>EC2 인스턴스 관리</h1>
     
-    <form action="{% url 'start_ec2_instance' %}" method="post" target="_blank">
-        {% csrf_token %}
-        <input type="submit" value="Start EC2 Instance">
-    </form>
+    <div><a href="{% url 'instance_create' %}">EC2 생성</a></div>
 
     <h2>EC2 인스턴스 목록</h2>
     <ul>
@@ -27,9 +24,10 @@
             <p><span>인스턴스 유형:</span><span>{{ instance.InstanceType }}</span></p>
             <p><span>퍼블릭 IP:</span><span>{% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}</span></p>
             <p><span>프라이빗 IP:</span><span>{% if instance.PrivateIpAddress %}{{ instance.PrivateIpAddress }}{% else %}N/A{% endif %}</span></p>
-            <p><span>고객:</span><span>{% for tag in instance.Tags %}{% if tag.Key == 'Customer' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
-            <p><span>생성 시간:</span><span>{{ instance.LaunchTime|date:"Y년 m월 d일 H:i:s" }}</span></p>
-            <p><span>모니터링 서비스 설정</span><span>{{ instance.Monitoring }}</span></p>
+            <p><span>시작 시간:</span><span>{{ instance.LaunchTime|date:"Y년 m월 d일 H:i:s" }}</span></p>
+            <p><span>고객:</span><span>{% for tag in instance.Tags %}{% if tag.Key == 'cus_name' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
+            <p><span>전화번호:</span><span>{% for tag in instance.Tags %}{% if tag.Key == 'cus_pnumber' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
+            <p><span>주소:</span><span>{% for tag in instance.Tags %}{% if tag.Key == 'cus_addr' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
             <p><span>상태:</span><span>{{ instance.State.Name }}</span></p>
         </li>
         {% endfor %}

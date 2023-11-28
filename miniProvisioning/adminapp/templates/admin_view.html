@@ -1,4 +1,4 @@
-<!-- admin_view.html -->
+    <!-- admin_view.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +14,7 @@
             <th>아이디</th>  
             <th>비밀번호</th>
             <th>이메일</th>
-            <th>Action</th>
+            <th>삭제</th>
         </tr>
         {% for user in users %}
         <tr>
@@ -22,9 +22,36 @@
             <td>{{ user.id }}</td>      
             <td>{{ user.password }}</td>
             <td>{{ user.email }}</td>
+            <td><button onclick="deleteUser('{{ user.employee_number }}')">Delete</button></td>
         </tr>
         {% endfor %}
     </table>
-    <p><a href="{% url 'login' %}">Back to Home</a></p>
+    <p><a href="{% url 'login' %}">Home으로 돌아가기</a></p>
+
+    <script>
+        function deleteUser(employeeNumber) {
+            var confirmation = confirm("정말 이 사용자를 삭제하시겠습니까?");
+            if (confirmation) {
+                // AJAX 요청을 통해 Django 뷰로 삭제 요청을 보냄
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "{% url 'delete_user' %}", true);
+                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                xhr.onload = function() {
+                    if (xhr.status == 200) {
+                        // 삭제 후 페이지 새로고침
+                        alert("삭제에 성공하였습니다.");
+                        window.location.reload();
+                    } else {
+                        alert("삭제에 실패하였습니다.");
+                    }
+                };
+                xhr.send("employee_number=" + employeeNumber);
+            }
+        }
+    </script>
+</body>
+</html>
+
+
 </body>
 </html>
