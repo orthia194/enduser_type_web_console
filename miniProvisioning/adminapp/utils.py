@@ -1,14 +1,14 @@
 # utils.py
 
 from django.http import JsonResponse
-from django.contrib.auth.models import User
+from .models import Member
 
 def check_existing_id(request):
     id = request.GET.get('id', '')
-    exists = User.objects.filter(username=id).exists()
+    exists = Member.objects.filter(id=id).exists()
     return JsonResponse({'exists': exists})
 
 def check_existing_email(request):
     email = request.GET.get('email', '')
-    exists = User.objects.filter(email=email).exists()
+    exists = Member.objects.filter(email=email).exists()
     return JsonResponse({'exists': exists})
