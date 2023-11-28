@@ -1,6 +1,6 @@
 from django.urls import path
 from django.views.generic import TemplateView  # TemplateView import 추가
-from .views import home, signup, success, start_ec2_instance, admin_view, delete_user, CustomLoginView, list_ec2_instances , delete_user
+from .views import home, signup, success, start_ec2_instance, admin_view, delete_user, CustomLoginView, list_ec2_instances
 from django.contrib.auth.views import LoginView
 from . import views
 from . import viewsec
