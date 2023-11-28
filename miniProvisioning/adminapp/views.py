@@ -16,6 +16,7 @@ from django.utils.html import format_html
 from .models import Member
 from django.views.decorators.csrf import csrf_exempt
 from .utils import check_existing_id, check_existing_email
+import os
 
 @csrf_exempt
 def loginCheck(request):
