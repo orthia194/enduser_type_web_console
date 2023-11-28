@@ -1,7 +1,7 @@
 import boto3
-import os
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
 from decouple import config
 from .forms import MemberForm
 from .models import Member
@@ -81,9 +81,11 @@ def delete_user(request, user_id):
         return redirect('admin_view')
     except Member.DoesNotExist:
         return redirect('admin_view')
+from django.contrib.auth import login
+from .forms import CustomUserCreationForm
 
 def home(request):
-    return render(request, 'test.html')
+    return render(request, 'test.html', context={})
 
 def start_ec2_instance(request):
     # AWS 자격 증명 설정
