@@ -15,20 +15,8 @@ from django.urls import reverse_lazy
 from django.utils.html import format_html
 from .models import Member
 from django.views.decorators.csrf import csrf_exempt
+from .utils import check_existing_id, check_existing_email
 
-def check_existing_id(request):
-    id = request.GET.get('id', '')
-    exists = User.objects.filter(username=id).exists()  # 사용자 모델에 따라서 확인 필요
-
-    return JsonResponse({'exists': exists})
-
-def check_existing_email(request):
-    email = request.GET.get('email', '')
-    exists = User.objects.filter(email=email).exists()  # 사용자 모델에 따라서 확인 필요
-
-    return JsonResponse({'exists': exists})
-
- 
 @csrf_exempt
 def loginCheck(request):
     request.session['username'] = ''
