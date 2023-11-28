@@ -21,14 +21,16 @@
             <p><span>인스턴스 ID :</span><span>{{ instance.InstanceId }}</span></p>
             {% for tag in instance.Tags %}
                 {% if tag.Key == 'Name' %}
-                    <strong>이름:</strong> {{ tag.Value }}<br>
+                    <p><span>이름:</span><span>{{ tag.Value }}</span></p>
                 {% endif %}
             {% endfor %}
-            <strong>인스턴스 유형:</strong> {{ instance.InstanceType }}<br>
-            <strong>퍼블릭 IP:</strong> {% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}<br>
-            <strong>프라이빗 IP:</strong> {% if instance.PrivateIpAddress %}{{ instance.PrivateIpAddress }}{% else %}N/A{% endif %}<br>
-            <strong>고객:</strong> {% for tag in instance.Tags %}{% if tag.Key == 'Customer' %}{{ tag.Value }}{% endif %}{% endfor %}<br>
-            <strong>상태:</strong> {{ instance.State.Name }}<br>
+            <p><span>인스턴스 유형:</span><span>{{ instance.InstanceType }}</span></p>
+            <p><span>퍼블릭 IP:</span><span>{% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}</span></p>
+            <p><span>프라이빗 IP:</span><span>{% if instance.PrivateIpAddress %}{{ instance.PrivateIpAddress }}{% else %}N/A{% endif %}</span></p>
+            <p><span>고객:</span><span>{% for tag in instance.Tags %}{% if tag.Key == 'Customer' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
+            <p><span>생성 시간:</span><span>{{ instance.LaunchTime|date:"Y년 m월 d일 H:i:s" }}</span></p>
+            <p><span>모니터링 서비스 설정</span><span>{{ instance.Monitoring }}</span></p>
+            <p><span>상태:</span><span>{{ instance.State.Name }}</span></p>
         </li>
         {% endfor %}
         {% endfor %}

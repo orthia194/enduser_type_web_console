@@ -1,76 +1,13 @@
 import boto3
-import os
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.shortcuts import render
 from decouple import config
-from .forms import MemberForm
-from .models import Member
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.views import LoginView
-from django.contrib.auth.models import User
-from django.contrib import messages
-from django.urls import reverse_lazy
-from django.utils.html import format_html
-from .models import Member
-from django.views.decorators.csrf import csrf_exempt
- 
-@csrf_exempt
-def loginCheck(request):
-    request.session['username'] = ''
-    _ID = request.POST.get('id')
-    _PASSWORD = request.POST.get('password')
-
-    try:
-        getUserInfoforID = Member.objects.get(id=_ID)
-        if _ID == 'admin':
-            request.session['username'] = _ID
-            return admin_view(request)  # admin_view를 직접 호출
-        else:
-            return render(request, 'test.html')
-    except Member.DoesNotExist:
-        return render(request, 'login.html')
-    except Exception as e:
-        return render(request, 'login.html')
-
-class CustomLoginView(LoginView):
-    template_name = 'login.html'
-
-    def get_success_url(self):
-        return reverse_lazy('test')
-
-    def form_invalid(self, form):
-        messages.error(self.request, 'Invalid username or password. Please try again.')
-        return super().form_invalid(form)
-
-#@user_passes_test(lambda u: u.is_staff, login_url='login')
-def admin_view(request):
-    print(request.session.get('username'))
-
-    if request.session.get('username') == 'admin':
-        print('a')
-        users = {}
-        # 세션에서 'username' 키의 값이 'admin'인 경우
-        users['users'] = Member.objects.all()
-        
-        print(users)
-        return render(request, 'admin_view.html', users)
-    else:
-        messages.error(request, '권한이 없습니다.')
-    return redirect('login')
-
-#@user_passes_test(lambda u: u.is_staff, login_url='login')
-def delete_user(request, user_id):
-    try:
-        user = Member.objects.get(id=user_id)
-        user.delete()
-        return redirect('admin_view')
-    except Member.DoesNotExist:
-        return redirect('admin_view')
+from django.contrib.auth import login
+from .forms import CustomUserCreationForm
 
 def home(request):
-    return render(request, 'test.html')
+    return render(request, 'test.html', context={})
 
 def start_ec2_instance(request):
     # AWS 자격 증명 설정
@@ -109,28 +46,6 @@ def start_ec2_instance(request):
 
     return HttpResponse(f"EC2 인스턴스가 시작되었습니다. 인스턴스 ID: {instance_id}")
 
-def signup(request):
-    if request.method == 'POST':
-        form = MemberForm(request.POST)
-        if form.is_valid():
-            member = form.save()
-
-            # 폴더 생성
-            folder_name = member.id
-            folder_path = os.path.join('index', folder_name)
-            os.makedirs(folder_path)
-
-            return redirect('home')  # 회원 가입 성공 시 test 페이지로 리다이렉트
-    else:
-        form = MemberForm()
-
-    return render(request, 'signup.html', {'form': form})
-
-def success(request):
-    return render(request, 'success.html')  # success.html 템플릿 파일을 렌더링하도록 변경
-
-def test(request):
-    return render(request, 'test.html')
 def list_ec2_instances(request):
     # AWS 자격 증명 설정
     aws_access_key = config('your_aws_access_key')
