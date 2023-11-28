@@ -70,7 +70,6 @@ def delete_user(request, user_id):
     except Member.DoesNotExist:
         return redirect('admin_view')
 from django.contrib.auth import login
-from .forms import CustomUserCreationForm
 
 def home(request):
     return render(request, 'test.html', context={})
