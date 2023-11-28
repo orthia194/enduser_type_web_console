@@ -1,6 +1,6 @@
 # models.py
-
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 class Member(models.Model):
     employee_number = models.AutoField(primary_key=True)

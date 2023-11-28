@@ -4,16 +4,132 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="Chrome">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>회원가입</title>
+    <!-- 여기에 CSS 링크를 추가하세요 -->
+    <style>
+        .error-message {
+            color: red;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
 <body>
-    <h2>회원가입</h2>
-    <form method="post" action="{% url 'signup' %}">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">가입하기</button>
-    </form>
+
+<h2>회원가입</h2>
+
+<form id="signupForm" method="post" action="{% url 'signup' %}">
+  {% csrf_token %}
+  
+  <div>
+    <label for="id">ID:</label>
+    <input type="text" id="id" name="id" required>
+    <p id="id-error" class="error-message"></p>
+  </div>
+  
+  <div>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+    <p id="email-error" class="error-message"></p>
+  </div>
+  
+  <div>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+  </div>
+  
+  <div>
+    <label for="password2">Confirm Password:</label>
+    <input type="password" id="password2" name="password2" required>
+    <p id="password-error" class="error-message"></p>
+  </div>
+  
+  <div>
+    <input type="submit" id="signupButton" value="가입하기" disabled>
+  </div>
+</form>
+
+<script>
+    $(document).ready(function () {
+        $("#id").on("input", function () {
+            checkExistingId();
+        });
+
+        $("#email").on("input", function () {
+            checkExistingEmail();
+        });
+
+        $("#password2").on("input", function () {
+            checkPasswordMatch();
+        });
+    });
+
+    function checkExistingId() {
+        var id = $("#id").val();
+        var idError = $("#id-error");
+
+        // Ajax를 사용하여 서버에 아이디 중복 확인 요청
+        $.ajax({
+            url: "{% url 'check_existing_id' %}",
+            method: "GET",
+            data: { id: id },
+            success: function (data) {
+                if (data.exists) {
+                    idError.text("이미 있는 아이디입니다.");
+                    $("#signupButton").prop("disabled", true);
+                } else {
+                    idError.text("");
+                    checkSignupButtonState();
+                }
+            }
+        });
+    }
+
+    function checkExistingEmail() {
+        var email = $("#email").val();
+        var emailError = $("#email-error");
+
+        // Ajax를 사용하여 서버에 이메일 중복 확인 요청
+        $.ajax({
+            url: "{% url 'check_existing_email' %}",
+            method: "GET",
+            data: { email: email },
+            success: function (data) {
+                if (data.exists) {
+                    emailError.text("이미 있는 이메일입니다.");
+                    $("#signupButton").prop("disabled", true);
+                } else {
+                    emailError.text("");
+                    checkSignupButtonState();
+                }
+            }
+        });
+    }
+
+    function checkPasswordMatch() {
+        var password = $("#password").val();
+        var confirmPassword = $("#password2").val();
+
+        if (password !== confirmPassword) {
+            $("#password-error").text("비밀번호가 일치하지 않습니다. 다시 입력해주세요.");
+            $("#signupButton").prop("disabled", true);
+        } else {
+            $("#password-error").text("");
+            checkSignupButtonState();
+        }
+    }
+
+    function checkSignupButtonState() {
+        // 아이디, 이메일, 비밀번호 확인이 모두 정상일 때만 가입하기 버튼 활성화
+        var idError = $("#id-error").text();
+        var emailError = $("#email-error").text();
+        var passwordError = $("#password-error").text();
+
+        if (idError === "" && emailError === "" && passwordError === "") {
+            $("#signupButton").prop("disabled", false);
+        }
+    }
+</script>
+
 </body>
 </html>

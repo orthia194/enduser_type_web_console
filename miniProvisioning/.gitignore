@@ -1,1 +1,5 @@
 .env
+
+
+adminapp/__pycache__/
+miniProvisioning/__pycache__/
