@@ -10,17 +10,17 @@
     <h2>User Information</h2>
     <table border="1">
         <tr>
-            <th>ID</th>
             <th>Employee Number</th>
-            <th>Username</th>
+            <th>ID</th>  
+            <th>Password</th>
             <th>Email</th>
             <th>Action</th>
         </tr>
         {% for user in users %}
         <tr>
-            <td>{{ user.id }}</td>
             <td>{{ user.employee_number }}</td>
-            <td>{{ user.username }}</td>
+            <td>{{ user.id }}</td>      
+            <td>{{ user.password }}</td>
             <td>{{ user.email }}</td>
         </tr>
         {% endfor %}
