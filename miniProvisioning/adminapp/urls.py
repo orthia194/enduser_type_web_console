@@ -7,4 +7,6 @@ urlpatterns = [
     path('instance_create/', views.instance_create, name='instance_create'),
     path('start_ec2_instance/', views.start_ec2_instance, name='start_ec2_instance'),
     path('instance_list/', views.list_ec2_instances, name='instance_list'),
+    path('stop-instances/', views.stop_instances, name='stop_instances'),
+    path('terminate-instances/', views.terminate_instances, name='terminate_instances'),
 ]

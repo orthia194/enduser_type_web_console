@@ -15,6 +15,7 @@
         {% for reservation in instances.Reservations %}
         {% for instance in reservation.Instances %}
         <li>
+            <input type="checkbox" name="selected_instances" value="{{ instance.InstanceId }}">
             <p><span>인스턴스 ID :</span><span>{{ instance.InstanceId }}</span></p>
             {% for tag in instance.Tags %}
                 {% if tag.Key == 'Name' %}
@@ -33,5 +34,37 @@
         {% endfor %}
         {% endfor %}
     </ul>
+    <button onclick="stopSelectedInstances()">선택된 인스턴스 중지</button>
+    <button onclick="terminateSelectedInstances()">선택된 인스턴스 삭제</button>
+    <script>
+        function stopSelectedInstances() {
+            const selectedInstances = document.querySelectorAll('input[name="selected_instances"]:checked');
+            const instanceIds = Array.from(selectedInstances).map(instance => instance.value);
+        
+            fetch('/stop-instances/', {
+                method: 'POST',
+                body: new URLSearchParams({ 'instanceIds[]': instanceIds }),  // 데이터 형식을 맞춰 전송합니다.
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',  // 폼 데이터로 전송합니다.
+                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF 토큰을 요청 헤더에 포함합니다.
+                },
+            });
+        }
+        
+        function terminateSelectedInstances() {
+            const selectedInstances = document.querySelectorAll('input[name="selected_instances"]:checked');
+            const instanceIds = Array.from(selectedInstances).map(instance => instance.value);
+        
+            fetch('/terminate-instances/', {
+                method: 'POST',
+                body: new URLSearchParams({ 'instanceIds[]': instanceIds }),  // 데이터 형식을 맞춰 전송합니다.
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',  // 폼 데이터로 전송합니다.
+                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF 토큰을 요청 헤더에 포함합니다.
+                },
+            });
+        }
+    </script>
+    
 </body>
 </html>
