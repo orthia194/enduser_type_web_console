@@ -1,7 +1,10 @@
 body {
+  min-width: 800px;
+  max-width: 1920px;
   color: #333;
   font-size: 20px;
 }
 body a {
   color: #333;
+  text-decoration: none;
 }/*# sourceMappingURL=common.css.map */

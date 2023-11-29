@@ -2,7 +2,7 @@ import os , shutil
 from .forms import MemberForm
 from .models import Member 
 from .utils import check_existing_id, check_existing_email
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.http import  JsonResponse
 from decouple import config
 from django.contrib.auth.views import LoginView
@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth.models import User
 
 
 @csrf_exempt
@@ -91,18 +92,15 @@ def signup(request):
 
     return render(request, 'signup.html', {'form': form})
 
-    def check_existing_id(request):
-        id = request.GET.get('id', '')
-        exists = User.objects.filter(username=id).exists()  # 사용자 모델에 따라서 확인 필요
-
+def check_existing_id(request):
+    id = request.GET.get('id', '')
+    exists = User.objects.filter(username=id).exists()  # 사용자 모델에 따라서 확인 필요
     return JsonResponse({'exists': exists})
 
-    def check_existing_email(request):
-        email = request.GET.get('email', '')
-        exists = User.objects.filter(email=email).exists()  # 사용자 모델에 따라서 확인 필요
-
-        return JsonResponse({'exists': exists})
-
+def check_existing_email(request):
+    email = request.GET.get('email', '')
+    exists = User.objects.filter(email=email).exists()  # 사용자 모델에 따라서 확인 필요
+    return JsonResponse({'exists': exists})
 
 
 def success(request):
