@@ -7,7 +7,7 @@ from . import viewsec
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='base.html'), name='home'),
-    path('test/', viewsec.home, name='test'),
+    path('instance_create/', viewsec.instance_create, name='instance_create'),
     path('start_ec2_instance/', viewsec.start_ec2_instance, name='start_ec2_instance'),
     path('instance_list/', viewsec.list_ec2_instances, name='instance_list'),
 ]

@@ -1,4 +1,4 @@
-import boto3, os
+import boto3, os , shutil
 from .forms import MemberForm
 from .models import Member 
 from django.shortcuts import render, redirect
@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 from .utils import check_existing_id, check_existing_email
+from django.contrib.auth.hashers import check_password
 
 
 @csrf_exempt
@@ -21,11 +22,13 @@ def loginCheck(request):
 
     try:
         getUserInfoforID = Member.objects.get(id=_ID)
-        if _ID == 'admin':
+        if _ID == 'admin' and check_password(_PASSWORD, getUserInfoforID.password):
             request.session['username'] = _ID
-            return admin_view(request)  # admin_view를 직접 호출
-        else:
+            return admin_view(request)
+        elif check_password(_PASSWORD, getUserInfoforID.password):
             return render(request, 'test.html')
+        else:
+            return render(request, 'login.html')
     except Member.DoesNotExist:
         return render(request, 'login.html')
     except Exception as e:
@@ -41,34 +44,37 @@ class CustomLoginView(LoginView):
         messages.error(self.request, 'Invalid username or password. Please try again.')
         return super().form_invalid(form)
 
-#@user_passes_test(lambda u: u.is_staff, login_url='login')
 def admin_view(request):
-    print(request.session.get('username'))
-
     if request.session.get('username') == 'admin':
-        print('a')
         users = {}
         # 세션에서 'username' 키의 값이 'admin'인 경우
         users['users'] = Member.objects.all()
-        
-        print(users)
         return render(request, 'admin_view.html', users)
     else:
         messages.error(request, '권한이 없습니다.')
     return redirect('login')
 
-#@user_passes_test(lambda u: u.is_staff, login_url='login')
-def delete_user(request, user_id):
-    try:
-        user = Member.objects.get(id=user_id)
-        user.delete()
-        return redirect('admin_view')
-    except Member.DoesNotExist:
-        return redirect('admin_view')
-from django.contrib.auth import login
+@csrf_exempt
+def delete_user(request):
+    if request.method == 'POST':
+        employee_number = request.POST.get('employee_number')
+        member = Member.objects.get(employee_number=employee_number)
 
+        # Get the folder path and delete it
+        folder_name = str(member.id)
+        print(folder_name)
+        folder_path = os.path.join('index', folder_name)
+        print(folder_path)
 
+        if os.path.exists(folder_path):
+            shutil.rmtree(folder_path)
 
+        # Delete the member1
+        member.delete()
+
+        return JsonResponse({'message': 'User deleted successfully'})
+    else:
+        return JsonResponse({'message': 'Invalid request method'})
 
 def signup(request):
     if request.method == 'POST':
@@ -76,21 +82,18 @@ def signup(request):
         if form.is_valid():
             member = form.save()
 
-            user = form.save(commit=False)
-            # 비밀번호를 암호화하여 저장
-            user.set_password(form.cleaned_data['password1'])
-            user.save()
-
             # 폴더 생성
-            folder_name = member.id
+            folder_name = str(member.id)
             folder_path = os.path.join('index', folder_name)
             os.makedirs(folder_path)
 
-            return redirect('home')  # 회원 가입 성공 시 test 페이지로 리다이렉트
+            return redirect('home')  # 회원 가입 성공 시 home 페이지로 리다이렉트
     else:
         form = MemberForm()
 
     return render(request, 'signup.html', {'form': form})
+
+
 
 def success(request):
     return render(request, 'success.html')  # success.html 템플릿 파일을 렌더링하도록 변경

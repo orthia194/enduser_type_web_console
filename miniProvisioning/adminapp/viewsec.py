@@ -5,8 +5,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from decouple import config
 
-def home(request):
-    return render(request, 'test.html', context={})
+def instance_create(request):
+    return render(request, 'instance_create.html', context={})
 def start_ec2_instance(request):
     # AWS 자격 증명 설정
     aws_access_key = config('your_aws_access_key')
@@ -20,20 +20,28 @@ def start_ec2_instance(request):
         aws_secret_access_key=aws_secret_key,
         region_name=region_name
     )
-
+    
+    if request.method == 'POST':
+        instance_type = request.POST.get('instance_type')
+        tag_instance_name = request.POST.get('tag_instance_name')
+        tag_instance_hname = request.POST.get('tag_instance_hname')
+        tag_instance_pnumber = request.POST.get('tag_instance_pnumber')
+        tag_instance_addr = request.POST.get('tag_instance_addr')
     # EC2 인스턴스 시작 요청
     response = ec2.run_instances(
         ImageId='ami-01123b84e2a4fba05',  # 사용할 AMI ID
         MinCount=1,
         MaxCount=1,
-        InstanceType='t2.micro',  # 인스턴스 유형 (예: 't2.micro')
+        InstanceType=instance_type,  # 인스턴스 유형 (예: 't2.micro')
         KeyName='admin',  # EC2 인스턴스에 연결할 키페어 이름
         TagSpecifications=[
             {
                 'ResourceType': 'instance',
                 'Tags': [
-                    {'Key': 'Name', 'Value': 'orthia-test'},  # 인스턴스 이름 지정
-                    {'Key': 'Customer', 'Value': '홍길동'}  # 고객 정보 태그 추가
+                    {'Key': 'Name', 'Value': tag_instance_name},  # 인스턴스 이름 지정
+                    {'Key': 'cus_name', 'Value': tag_instance_hname},  # 고객 정보 태그 추가
+                    {'Key': 'cus_pnumber', 'Value': tag_instance_pnumber},  # 고객 정보 태그 추가
+                    {'Key': 'cus_addr', 'Value': tag_instance_addr}  # 고객 정보 태그 추가
                 ]
             }
         ]
