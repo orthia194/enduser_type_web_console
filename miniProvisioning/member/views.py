@@ -1,7 +1,7 @@
 import boto3, os , shutil
 from .forms import MemberForm
 from .models import Member 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from decouple import config
 from django.contrib.auth.forms import AuthenticationForm
