@@ -9,5 +9,5 @@ class Member(models.Model):
     password = models.CharField(max_length=100)
 
     class Meta:
-     app_label = 'member'
+     db_table = 'member'
  

@@ -1,3 +1,4 @@
+from logging.config import IDENTIFIER
 import os , shutil
 from .forms import MemberForm
 from .models import Member 
@@ -50,6 +51,7 @@ def admin_view(request):
         users['users'] = Member.objects.all()
         return render(request, 'admin_view.html', users)
     else:
+        print("abd")
         messages.error(request, '권한이 없습니다.')
     return redirect('login')
 
@@ -94,12 +96,12 @@ def signup(request):
 
 def check_existing_id(request):
     id = request.GET.get('id', '')
-    exists = User.objects.filter(username=id).exists()  # 사용자 모델에 따라서 확인 필요
+    exists = Member.objects.filter(id=id).exists()  # 사용자 모델에 따라서 확인 필요
     return JsonResponse({'exists': exists})
 
 def check_existing_email(request):
     email = request.GET.get('email', '')
-    exists = User.objects.filter(email=email).exists()  # 사용자 모델에 따라서 확인 필요
+    exists = Member.objects.filter(email=email).exists()  # 사용자 모델에 따라서 확인 필요
     return JsonResponse({'exists': exists})
 
 

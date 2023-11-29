@@ -7,7 +7,7 @@ from decouple import config
 
 # EC2 인스턴스를 생성하고, 해당 인스턴스에 스크립트를 실행하는 함수
 def instance_create(request):
-    return render(request, 'instance_create.html.html')
+    return render(request, 'instance_create.html')
 
 def start_ec2_instance(request):
     aws_access_key = config('your_aws_access_key')

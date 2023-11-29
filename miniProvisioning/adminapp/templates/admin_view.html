@@ -24,7 +24,7 @@
             <td>{{ user.password }}</td>
             <td>{{ user.email }}</td>
             <td><button onclick="deleteUser('{{ user.employee_number }}')">Delete</button></td>
-            td>
+            <td>
             <form action="/reset_password" method="post">
                 <input type="hidden" name="employee_number" value="{{ user.employee_number }}">
                 <button type="submit">Reset Password</button>
@@ -44,7 +44,7 @@
                 xhr.open("POST", "{% url 'delete_user' %}", true);
                 xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
                 xhr.onload = function() {
-                    if (xhr.status == 200) {
+                    if (xhr.status == 200 ) {
                         // 삭제 후 페이지 새로고침
                         alert("삭제에 성공하였습니다.");
                         window.location.reload();
