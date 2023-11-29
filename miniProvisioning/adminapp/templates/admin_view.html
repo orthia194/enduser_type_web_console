@@ -15,6 +15,7 @@
             <th>비밀번호</th>
             <th>이메일</th>
             <th>삭제</th>
+            <th>비밀번호 재설정</th>
         </tr>
         {% for user in users %}
         <tr>
@@ -23,12 +24,18 @@
             <td>{{ user.password }}</td>
             <td>{{ user.email }}</td>
             <td><button onclick="deleteUser('{{ user.employee_number }}')">Delete</button></td>
+            td>
+            <form action="/reset_password" method="post">
+                <input type="hidden" name="employee_number" value="{{ user.employee_number }}">
+                <button type="submit">Reset Password</button>
+            </form>
+            </td>
         </tr>
         {% endfor %}
     </table>
     <p><a href="{% url 'login' %}">Home으로 돌아가기</a></p>
-
-    <script>
+    
+    <script>        
         function deleteUser(employeeNumber) {
             var confirmation = confirm("정말 이 사용자를 삭제하시겠습니까?");
             if (confirmation) {
@@ -48,6 +55,12 @@
                 xhr.send("employee_number=" + employeeNumber);
             }
         }
+      
+
+
+        
+
+        
     </script>
 </body>
 </html>
