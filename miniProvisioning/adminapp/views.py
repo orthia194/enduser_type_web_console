@@ -5,6 +5,9 @@ from django.http import HttpResponse
 from decouple import config
 
 # EC2 인스턴스를 생성하고, 해당 인스턴스에 스크립트를 실행하는 함수
+def instance_create(request):
+    return render(request, 'instance_create.html.html')
+
 def start_ec2_instance(request):
     aws_access_key = config('your_aws_access_key')
     aws_secret_key = config('your_aws_secret_key')
@@ -62,3 +65,29 @@ def start_ec2_instance(request):
         return HttpResponse(f"EC2 인스턴스가 시작되었습니다. 인스턴스 ID: {instance_id}")
 
     return render(request, 'instance_create.html', context={})
+
+
+# EC2 인스턴스 목록을 가져오는 함수
+def list_ec2_instances(request):
+    aws_access_key = config('your_aws_access_key')
+    aws_secret_key = config('your_aws_secret_key')
+    region_name = 'ap-northeast-2'
+
+    ec2 = boto3.client(
+        'ec2',
+        aws_access_key_id=aws_access_key,
+        aws_secret_access_key=aws_secret_key,
+        region_name=region_name
+    )
+
+    instances = ec2.describe_instances()
+
+    instance_names = []
+    for reservation in instances['Reservations']:
+        for instance in reservation['Instances']:
+            for tag in instance.get('Tags', []):
+                if tag['Key'] == 'Name':
+                    instance_names.append(tag['Value'])
+
+    return render(request, 'instance_list.html', {'instances': instances, 'instance_names': instance_names})
+
