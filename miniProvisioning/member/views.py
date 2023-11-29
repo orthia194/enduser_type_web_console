@@ -93,6 +93,18 @@ def signup(request):
 
     return render(request, 'signup.html', {'form': form})
 
+    def check_existing_id(request):
+        id = request.GET.get('id', '')
+        exists = User.objects.filter(username=id).exists()  # 사용자 모델에 따라서 확인 필요
+
+    return JsonResponse({'exists': exists})
+
+    def check_existing_email(request):
+        email = request.GET.get('email', '')
+        exists = User.objects.filter(email=email).exists()  # 사용자 모델에 따라서 확인 필요
+
+        return JsonResponse({'exists': exists})
+
 
 
 def success(request):
