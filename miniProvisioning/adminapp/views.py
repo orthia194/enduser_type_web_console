@@ -2,6 +2,7 @@ import boto3
 import subprocess
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.http import JsonResponse
 from decouple import config
 
 # EC2 인스턴스를 생성하고, 해당 인스턴스에 스크립트를 실행하는 함수
@@ -65,7 +66,25 @@ def start_ec2_instance(request):
         return HttpResponse(f"EC2 인스턴스가 시작되었습니다. 인스턴스 ID: {instance_id}")
 
     return render(request, 'instance_create.html', context={})
+def stop_instances(request):
+    if request.method == 'POST':
+        instance_ids = request.POST.getlist('instanceIds[]')  # JSON 데이터로 전송된 instanceIds를 가져옵니다.
+        # TODO: boto3 를 사용하여 instance_ids에 해당하는 EC2 인스턴스들을 중지하는 코드를 작성합니다.
+        # 예시: boto3.client('ec2').stop_instances(InstanceIds=instance_ids)
 
+        return JsonResponse({'status': 'success'})  # 처리가 완료되면 성공 응답을 반환합니다.
+
+    return JsonResponse({'status': 'error', 'message': 'POST method required'})  # POST 요청이 아닐 경우 에러 응답을 반환합니다.
+
+def terminate_instances(request):
+    if request.method == 'POST':
+        instance_ids = request.POST.getlist('instanceIds[]')  # JSON 데이터로 전송된 instanceIds를 가져옵니다.
+        # TODO: boto3 를 사용하여 instance_ids에 해당하는 EC2 인스턴스들을 삭제하는 코드를 작성합니다.
+        # 예시: boto3.client('ec2').terminate_instances(InstanceIds=instance_ids)
+
+        return JsonResponse({'status': 'success'})  # 처리가 완료되면 성공 응답을 반환합니다.
+
+    return JsonResponse({'status': 'error', 'message': 'POST method required'})  # POST 요청이 아닐 경우 에러 응답을 반환합니다.
 
 # EC2 인스턴스 목록을 가져오는 함수
 def list_ec2_instances(request):

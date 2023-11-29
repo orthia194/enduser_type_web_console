@@ -1,16 +1,14 @@
-import boto3, os , shutil
+import os , shutil
 from .forms import MemberForm
 from .models import Member 
+from .utils import check_existing_id, check_existing_email
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse
+from django.http import  JsonResponse
 from decouple import config
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView
-from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
-from .utils import check_existing_id, check_existing_email
 from django.contrib.auth.hashers import check_password
 
 
