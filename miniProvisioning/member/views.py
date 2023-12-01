@@ -20,11 +20,13 @@ def loginCheck(request):
 
     try:
         getUserInfoforID = Member.objects.get(id=_ID)
+        myID = getUserInfoforID.id
         if _ID == 'admin' and check_password(_PASSWORD, getUserInfoforID.password):
             request.session['username'] = _ID
             return admin_view(request)
         elif check_password(_PASSWORD, getUserInfoforID.password):
-            return render(request, 'test.html', {'user_id': _ID})
+            # 안전하게 사용자 ID 전달
+            return render(request, 'test.html', {'user_id': myID})
         else:
             return render(request, 'login.html')
     except Member.DoesNotExist:
@@ -32,7 +34,6 @@ def loginCheck(request):
     except Exception as e:
         return render(request, 'login.html')
 
-@login_required(login_url='login')
 def admin_view(request):
     if request.session.get('username') == 'admin':
         users = {}
@@ -70,18 +71,25 @@ def signup(request):
     if request.method == 'POST':
         form = MemberForm(request.POST)
         if form.is_valid():
-            # 제출된 양식이 유효한 경우, 양식 데이터를 저장하여 새로운 Member 인스턴스를 생성
+            # 양식 데이터 저장 및 Member 인스턴스 생성
             member = form.save()
 
+            # 회원의 id를 사용하여 Linux 사용자 생성
+            username = str(member.id)
+            password = form.cleaned_data['password']  # 이 부분은 실제 비밀번호 필드 이름으로 수정
+            subprocess.run(f'sudo adduser --disabled-password --gecos "" {username}', shell=True)
+
+            # 비밀번호 설정
+            subprocess.run(f'sudo echo "{username}:{password}" | sudo chpasswd', shell=True)
+
             # 폴더 생성
-            folder_name = str(member.id)
+            folder_name = username
             folder_path = os.path.join('index', folder_name)
             os.makedirs(folder_path)
 
-            # SHfile에 있는 파일들을 복사해서 본인의 id 폴더 안에 복사
+            # SHfile의 파일들을 id 폴더로 복사
             shfile_path = 'SHfile'  # SHfile 경로를 적절히 수정
 
-            # SHfile의 모든 파일을 id 폴더로 복사
             for filename in os.listdir(shfile_path):
                 file_path = os.path.join(shfile_path, filename)
                 if os.path.isfile(file_path):
@@ -95,21 +103,25 @@ def signup(request):
     return render(request, 'signup.html', {'form': form})
 
 def start_docker(request):
+    # 사용자의 ID를 가져오기
+    user_id = request.POST.get('id')
+    print(user_id)
+    
+    # (optional) 사용자 객체 전체를 가져오려면
+    user = request.user
+
+     #여기서 user_id를 템플릿으로 전달하거나 다른 로직에 활용할 수 있음
+    print("Current working directory:", os.getcwd())
     if request.method == 'POST':
-        if request.user.is_authenticated:
-            # 사용자의 ID를 현재 접속중인 사용자의 ID로 변경
-            user_id = request.user.member.id
-            print(user_id)
+         script_path = f'./index/{user_id}/3tierinstall.sh'
 
-            script_path = f'/index/{user_id}/3tierinstall.sh'
+         try: 
+            subprocess.run(['/bin/bash', script_path], check=True)
+            return HttpResponse("성공적으로 실행되었습니다.")
+         except subprocess.CalledProcessError as e:
+            return HttpResponse(f"Error starting Docker: {e}", status=500)
 
-            try:
-                subprocess.run(['bash', script_path], check=True)
-                return HttpResponse("성공적으로 실행되었습니다.")
-            except subprocess.CalledProcessError as e:
-                return HttpResponse(f"Error starting Docker: {e}", status=500)
-
-    return render(request, 'test.html')  # your_template.html은 실제 템플릿 파일명으로 변경해야 합니다.
+    return render(request, 'test.html', {'user_id': user_id})  # your_template.html은 실제 템플릿 파일명으로 변경해야 합니다.
 
      
 def test(request):

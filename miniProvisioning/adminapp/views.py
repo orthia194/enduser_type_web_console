@@ -1,5 +1,6 @@
 import boto3
 import subprocess
+import requests
 from django.shortcuts import render,redirect
 from django.http import HttpResponse
 from django.http import JsonResponse
@@ -153,6 +154,12 @@ def list_ec2_instances(request):
 def api_endpoint(request):
     data = {"message": "Hello, Node.js!"}
     return JsonResponse(data)
-
 def terminal(request):
-    return HttpResponse("This is the terminal view.")
+    # Node.js 서버의 URL 설정
+    nodejs_url = 'http://127.0.0.1:3000'
+
+    # Node.js 서버로 GET 요청을 보내서 결과를 받아옴
+    response = requests.get(nodejs_url)
+
+    # Node.js 서버의 응답을 HttpResponse로 반환
+    return HttpResponse(response.text)

@@ -4,48 +4,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/common.css?v=4">
+    <link rel="stylesheet" href="/static/css/common.css?v=5">
     <title>EC2 인스턴스</title>
 </head>
 <body>
     <section class="box_center">
-    <header><h1>EC2 인스턴스 관리</h1></header>
+    <header>
+        <h1>EC2 인스턴스 관리</h1>
+    </header>
     <article class="instance_menu clearFix">
         <div><button onclick="terminateSelectedInstances()">삭제</button></div>
         <div><button onclick="stopSelectedInstances()">중지</button></div>
         <div><button onclick="startSelectedInstances()">시작</button></div>
-        <div><button id="refreshButton">새로고침</button></div>
-        <div><a class="test1231" href="{% url 'instance_create' %}">EC2 생성</a></div>
+        <div class="instance_create"><a href="{% url 'instance_create' %}">EC2 생성</a></div>
+        <div class="refreshButton"><button id="refreshButton">새로고침</button></div>
     </article>
 <!-- <iframe src="http://15.165.251.209:3000/" width="400" height="400" style="border: none;"></iframe> -->
-    <ul>
-        {% for reservation in instances.Reservations %}
-        {% for instance in reservation.Instances %}
-        {% if instance.InstanceId != 'i-094eb0fe81355d190' %}
-        <li>
-            <input type="checkbox" name="selected_instances" value="{{ instance.InstanceId }}">
-            <p><span>인스턴스 ID :</span><span>{{ instance.InstanceId }}</span></p>
-            {% for tag in instance.Tags %}
-                {% if tag.Key == 'Name' %}
-                    <p><span>이름:</span><span>{{ tag.Value }}</span></p>
+    <section class="main_box clearFix">
+        <article class="main_left">
+            <ul>
+                <li>ADMIN</li>
+                <li>EC2</li>
+                <li>DOCKER</li>
+            </ul>
+        </article>
+        <article class="main_right">
+            <ul>
+                {% for reservation in instances.Reservations %}
+                {% for instance in reservation.Instances %}
+                {% if instance.InstanceId != 'i-094eb0fe81355d190' %}
+                <li class="clearFix">
+                    <div>
+                        <input type="checkbox" name="selected_instances" value="{{ instance.InstanceId }}">
+                    </div>
+                    <div>
+                        {% for tag in instance.Tags %}
+                        {% if tag.Key == 'Name' %}
+                            <p><span>{{ tag.Value }}</span></p>
+                        {% endif %}
+                    {% endfor %}
+                    <p><span style="margin-right: 10%;">{{ instance.InstanceId }}</span><span>{{ instance.InstanceType }}</span></p>
+                    <p><span style="margin-right: 10%;">Public : {% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}</span><span>Private : {% if instance.PrivateIpAddress %}{{ instance.PrivateIpAddress }}{% else %}N/A{% endif %}</span></p>
+                    <p><span>Start Time : </span><span>{{ instance.LaunchTime|date:"Y.m.d H:i:s" }}</span></p>
+                    <p><span style="margin-right: 10%;">Customer : {% for tag in instance.Tags %}{% if tag.Key == 'cus_name' %}{{ tag.Value }}{% endif %}{% endfor %}</span><span>Phone Number : {% for tag in instance.Tags %}{% if tag.Key == 'cus_pnumber' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
+                    <p><span>Address : </span><span>{% for tag in instance.Tags %}{% if tag.Key == 'cus_addr' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
+                    <p class="clearFix {% if instance.State.Name == 'running' %}running{% elif instance.State.Name == 'stopped' %}stopped{% elif instance.State.Name == 'shutting-down' %}shutting-down{% else %}terminated{% endif %}">State : {{ instance.State.Name }}>State : {{ instance.State.Name }}</p>
+                    </div>
+                </li>
                 {% endif %}
-            {% endfor %}
-            <p><span>인스턴스 유형:</span><span>{{ instance.InstanceType }}</span></p>
-            <p><span>퍼블릭 IP:</span><span>{% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}</span></p>
-            <p><span>프라이빗 IP:</span><span>{% if instance.PrivateIpAddress %}{{ instance.PrivateIpAddress }}{% else %}N/A{% endif %}</span></p>
-            <p><span>시작 시간:</span><span>{{ instance.LaunchTime|date:"Y년 m월 d일 H:i:s" }}</span></p>
-            <p><span>고객:</span><span>{% for tag in instance.Tags %}{% if tag.Key == 'cus_name' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
-            <p><span>전화번호:</span><span>{% for tag in instance.Tags %}{% if tag.Key == 'cus_pnumber' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
-            <p><span>주소:</span><span>{% for tag in instance.Tags %}{% if tag.Key == 'cus_addr' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
-            <p><span>상태:</span><span>{{ instance.State.Name }}</span></p>
-        </li>
-        {% endif %}
-        {% endfor %}
-        {% endfor %}
-    </ul>
-    
-    
-    
+                {% endfor %}
+                {% endfor %}
+            </ul>
+        </article>
+    </section>
     <script>
         document.getElementById("refreshButton").addEventListener("click", function() {
             location.reload();

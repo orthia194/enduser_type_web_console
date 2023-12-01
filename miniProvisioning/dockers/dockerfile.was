@@ -1,0 +1,3 @@
+from tomcat
+workdir /usr/local/tomcat
+cmd ["/usr/local/tomcat/bin/catalina.sh", "run"]

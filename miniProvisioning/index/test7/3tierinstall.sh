@@ -93,6 +93,9 @@ echo "/was/data/test.html 생성 완료 해당 페이지 수정을 권장드립�
 cd ..
 cd ..
 
+USER_NAME=$(whoami)
+USER_FOLDER_PATH="./${USER_NAME}"
+
 cat << EOL> docker-compose.yml
 version: "3.0"
 
@@ -101,11 +104,13 @@ services:
     container_name: Main_Web_Console
     image: nginx
     volumes:
-      - ./web/conf/default.conf:/etc/nginx/conf.d/default.conf
+      - ./${USER_NAME}/web/conf/default.conf:/etc/nginx/conf.d/default.conf
     ports:
       - ":80"
     depends_on:
       - was
+    environment:
+      - USER_NAME=${USER_NAME}
 
   was:
     container_name: Main_Was_Console
@@ -114,11 +119,13 @@ services:
       context: ./dockers
       dockerfile: dockerfile.was
     volumes:
-      - ./was/data:/usr/local/tomcat/webapps/ROOT
+      - ./${USER_NAME}/was/data:/usr/local/tomcat/webapps/ROOT
     ports:
       - "8080:8080"
     depends_on:
       - db
+    environment:
+    - USER_NAME=${USER_NAME}
 
   db:
     container_name: Main_DB_Console
@@ -127,18 +134,12 @@ services:
       context: ./dockers
       dockerfile: dockerfile.db
     volumes:
-      - ./db/data:/var/lib/mysql
+      - ./${USER_NAME}/db/data:/var/lib/mysql
     environment:
       MARIADB_ROOT_PASSWORD: abcd
+      - USER_NAME=${USER_NAME}
+    
 
-  phpmyadmin:
-    container_name: Main_PHP_Console
-    image: phpmyadmin
-    restart: always
-    ports:
-      - 9090:8080
-    environment:
-      - PMA_ARBITRARY=1
 EOL
 
 echo "docker-compose.yml 파일 생성 완료"

@@ -12,9 +12,10 @@
     </form>
     <form action="{% url 'start_docker' %}" method="post">
         {% csrf_token %}
-        <input type="hidden" name="id" value="{{ request.user.member.id }}">
+        <input type="hidden" name="id" value="{{ user_id }}">
         <input type="submit" value="start_docker">
     </form>
+    <p>User ID: {{ user_id }}</p>
 </body>
 </html>
 
