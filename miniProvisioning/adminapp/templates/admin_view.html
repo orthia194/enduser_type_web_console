@@ -34,7 +34,7 @@
         {% endfor %}
     </table>
     <p><a href="{% url 'login' %}">Home으로 돌아가기</a></p>
-    
+    <p>회원 추가 <a href="{% url 'signup' %}">Sign up</a></p>
     <script>        
         function deleteUser(employeeNumber) {
             var confirmation = confirm("정말 이 사용자를 삭제하시겠습니까?");
@@ -55,16 +55,8 @@
                 xhr.send("employee_number=" + employeeNumber);
             }
         }
-      
-
-
-        
-
         
     </script>
 </body>
 </html>
 
-
-</body>
-</html>

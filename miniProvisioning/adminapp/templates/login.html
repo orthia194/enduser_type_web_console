@@ -7,10 +7,10 @@
     <title>Login</title>
 </head>
 <body>
-    <h2>Login</h2>
+    <h2>로그인</h2>
     <form method="post" action="/login/">
         {% csrf_token %}
-        <label for="id">Username:</label>
+        <label for="id">ID:</label>
         <input type="text" name="id" required>
         <br>
         <label for="password">Password:</label>
@@ -18,6 +18,5 @@
         <br>
         <input type="submit" value="Login">
     </form>
-    <p>Don't have an account? <a href="{% url 'signup' %}">Sign up</a></p>
 </body>
 </html>

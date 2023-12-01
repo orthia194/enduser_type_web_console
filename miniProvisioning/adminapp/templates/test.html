@@ -8,8 +8,46 @@
 <body>
     <form action="{% url 'start_ec2_instance' %}" method="post">
         {% csrf_token %}
-        <input type="submit" value="Start EC2 Instance">
+        <input type="submit" value="Start_EC2_Instance">
     </form>
-    
+    <form action="{% url 'start_docker' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ request.user.member.id }}">
+        <input type="submit" value="start_docker">
+    </form>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

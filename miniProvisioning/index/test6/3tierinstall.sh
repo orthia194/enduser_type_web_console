@@ -103,7 +103,9 @@ services:
     volumes:
       - ./web/conf/default.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - ":80"
+      - "${WEB_PORT:-80}:80"
+    environment:
+      - EMPLOYEE_NUMBER=${EMPLOYEE_NUMBER:-1} # Default value if not set
     depends_on:
       - was
 
@@ -116,9 +118,11 @@ services:
     volumes:
       - ./was/data:/usr/local/tomcat/webapps/ROOT
     ports:
-      - "8080:8080"
+      - "${WAS_PORT:-8080}:8080"
     depends_on:
       - db
+    environment:
+      - EMPLOYEE_NUMBER=${EMPLOYEE_NUMBER:-1} # Default value if not set
 
   db:
     container_name: Main_DB_Console
@@ -143,10 +147,31 @@ EOL
 
 echo "docker-compose.yml 파일 생성 완료"
 
-docker-compose build
+MYSQL_HOST="database-1.c26odpmo5jsk.ap-northeast-2.rds.amazonaws.com"
+MYSQL_USER="admin"
+MYSQL_PASSWORD="wkdrbgus"
+MYSQL_DATABASE="member"
+
+CURRENT_USER_ID=$(whoami)
+echo $CURRENT_USER_ID
+
+# SQL 쿼리
+SQL_QUERY="SELECT employee_number FROM member WHERE id = '$CURRENT_USER_ID';"
+
+# MySQL 쿼리 실행
+EMPLOYEE_NUMBER=$(mysql -h $MYSQL_HOST -u $MYSQL_USER -p$MYSQL_PASSWORD -D $MYSQL_DATABASE -e "$SQL_QUERY" --batch --skip-column-names)
+
+# 결과 출력
+echo $EMPLOYEE_NUMBER
+
+# Docker Compose 실행
+export WEB_PORT=$((EMPLOYEE_NUMBER + 1000))
+export EMPLOYEE_NUMBER
+
+docker compose build
 
 echo "**************************bulid 완료******************************** "
-docker-compose up -d
+docker compose up -d
 
 echo "**************************compose up 완료******************************** "
 echo "docker ps 커맨드로 모두 올라와 있는지 확인해 주세요. "

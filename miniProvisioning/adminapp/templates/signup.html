@@ -86,25 +86,38 @@
     }
 
     function checkExistingEmail() {
-        var email = $("#email").val();
-        var emailError = $("#email-error");
+    // 폼에서 이메일 입력 필드의 값을 가져옴
+    var email = $("#email").val();
 
-        // Ajax를 사용하여 서버에 이메일 중복 확인 요청
-        $.ajax({
-            url: "{% url 'check_existing_email' %}",
-            method: "GET",
-            data: { email: email },
-            success: function (data) {
-                if (data.exists) {
-                    emailError.text("이미 있는 이메일입니다.");
-                    $("#signupButton").prop("disabled", true);
-                } else {
-                    emailError.text("");
-                    checkSignupButtonState();
-                }
+    // 이메일 관련 오류 메시지를 표시할 요소
+    var emailError = $("#email-error");
+
+    // Ajax를 사용하여 서버에 이메일 중복 확인 요청
+    $.ajax({
+        // 서버에 보낼 요청의 URL을 지정
+        url: "{% url 'check_existing_email' %}",
+        
+        // HTTP 메서드를 GET으로 설정 (데이터를 서버로 전송하기 위해 사용)
+        method: "GET",
+
+        // 서버에 전송할 데이터를 설정 (이메일 값)
+        data: { email: email },
+
+        // Ajax 요청이 성공했을 때 실행되는 콜백 함수
+        success: function (data) {
+            // 서버에서 받은 데이터 중 'exists' 키의 값에 따라 처리
+            if (data.exists) {
+                // 이메일이 이미 존재하는 경우 오류 메시지를 표시하고 가입 버튼 비활성화
+                emailError.text("이미 있는 이메일입니다.");
+                $("#signupButton").prop("disabled", true);
+            } else {
+                // 이메일이 존재하지 않는 경우 오류 메시지를 지우고 가입 버튼 상태 확인
+                emailError.text("");
+                checkSignupButtonState();
             }
-        });
-    }
+        }
+    });
+}
 
     function checkPasswordMatch() {
         var password = $("#password").val();

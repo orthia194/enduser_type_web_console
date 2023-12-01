@@ -143,10 +143,10 @@ EOL
 
 echo "docker-compose.yml 파일 생성 완료"
 
-docker-compose build
+docker compose build
 
 echo "**************************bulid 완료******************************** "
-docker-compose up -d
+docker compose up -d
 
 echo "**************************compose up 완료******************************** "
 echo "docker ps 커맨드로 모두 올라와 있는지 확인해 주세요. "

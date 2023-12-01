@@ -1,21 +1,27 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/common.css?v=4">
     <title>EC2 인스턴스</title>
 </head>
 <body>
-    <h1>EC2 인스턴스 관리</h1>
-    
-    <div><a class="test1231" href="{% url 'instance_create' %}">EC2 생성</a></div>
-
-    <h2>EC2 인스턴스 목록</h2>
+    <section class="box_center">
+    <header><h1>EC2 인스턴스 관리</h1></header>
+    <article class="instance_menu clearFix">
+        <div><button onclick="terminateSelectedInstances()">삭제</button></div>
+        <div><button onclick="stopSelectedInstances()">중지</button></div>
+        <div><button onclick="startSelectedInstances()">시작</button></div>
+        <div><button id="refreshButton">새로고침</button></div>
+        <div><a class="test1231" href="{% url 'instance_create' %}">EC2 생성</a></div>
+    </article>
+<!-- <iframe src="http://15.165.251.209:3000/" width="400" height="400" style="border: none;"></iframe> -->
     <ul>
         {% for reservation in instances.Reservations %}
         {% for instance in reservation.Instances %}
+        {% if instance.InstanceId != 'i-094eb0fe81355d190' %}
         <li>
             <input type="checkbox" name="selected_instances" value="{{ instance.InstanceId }}">
             <p><span>인스턴스 ID :</span><span>{{ instance.InstanceId }}</span></p>
@@ -33,17 +39,35 @@
             <p><span>주소:</span><span>{% for tag in instance.Tags %}{% if tag.Key == 'cus_addr' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
             <p><span>상태:</span><span>{{ instance.State.Name }}</span></p>
         </li>
+        {% endif %}
         {% endfor %}
         {% endfor %}
     </ul>
-    <button onclick="stopSelectedInstances()">선택된 인스턴스 중지</button>
-    <button onclick="terminateSelectedInstances()">선택된 인스턴스 삭제</button>
+    
+    
+    
     <script>
+        document.getElementById("refreshButton").addEventListener("click", function() {
+            location.reload();
+        });
+        function startSelectedInstances() {
+            const selectedInstances = document.querySelectorAll('input[name="selected_instances"]:checked');
+            const instanceIds = Array.from(selectedInstances).map(instance => instance.value);
+        
+            fetch('/adminconsole/start_instances/', {
+                method: 'POST',
+                body: new URLSearchParams({ 'instanceIds[]': instanceIds }),  // 데이터 형식을 맞춰 전송합니다.
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',  // 폼 데이터로 전송합니다.
+                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF 토큰을 요청 헤더에 포함합니다.
+                },
+            });
+        }
         function stopSelectedInstances() {
             const selectedInstances = document.querySelectorAll('input[name="selected_instances"]:checked');
             const instanceIds = Array.from(selectedInstances).map(instance => instance.value);
         
-            fetch('/stop-instances/', {
+            fetch('/adminconsole/stop_instances/', {
                 method: 'POST',
                 body: new URLSearchParams({ 'instanceIds[]': instanceIds }),  // 데이터 형식을 맞춰 전송합니다.
                 headers: {
@@ -57,7 +81,7 @@
             const selectedInstances = document.querySelectorAll('input[name="selected_instances"]:checked');
             const instanceIds = Array.from(selectedInstances).map(instance => instance.value);
         
-            fetch('/terminate-instances/', {
+            fetch('/adminconsole/terminate_instances/', {
                 method: 'POST',
                 body: new URLSearchParams({ 'instanceIds[]': instanceIds }),  // 데이터 형식을 맞춰 전송합니다.
                 headers: {
@@ -67,6 +91,6 @@
             });
         }
     </script>
-    
+</section>
 </body>
 </html>

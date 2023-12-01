@@ -1,18 +1,16 @@
 from logging.config import IDENTIFIER
-import os , shutil
+import os , shutil , subprocess
 from .forms import MemberForm
 from .models import Member 
-from .utils import check_existing_id, check_existing_email
 from django.shortcuts import render, redirect
-from django.http import  JsonResponse
+from django.http import  JsonResponse , HttpResponse
 from decouple import config
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
-from django.contrib.auth.models import User
-
+from django.contrib.auth.decorators import login_required
 
 @csrf_exempt
 def loginCheck(request):
@@ -26,7 +24,7 @@ def loginCheck(request):
             request.session['username'] = _ID
             return admin_view(request)
         elif check_password(_PASSWORD, getUserInfoforID.password):
-            return render(request, 'test.html')
+            return render(request, 'test.html', {'user_id': _ID})
         else:
             return render(request, 'login.html')
     except Member.DoesNotExist:
@@ -34,16 +32,7 @@ def loginCheck(request):
     except Exception as e:
         return render(request, 'login.html')
 
-class CustomLoginView(LoginView):
-    template_name = 'login.html'
-
-    def get_success_url(self):
-        return reverse_lazy('test')
-
-    def form_invalid(self, form):
-        messages.error(self.request, 'Invalid username or password. Please try again.')
-        return super().form_invalid(form)
-
+@login_required(login_url='login')
 def admin_view(request):
     if request.session.get('username') == 'admin':
         users = {}
@@ -70,7 +59,7 @@ def delete_user(request):
         if os.path.exists(folder_path):
             shutil.rmtree(folder_path)
 
-        # Delete the member1
+        # Delete the member
         member.delete()
 
         return JsonResponse({'message': 'User deleted successfully'})
@@ -81,6 +70,7 @@ def signup(request):
     if request.method == 'POST':
         form = MemberForm(request.POST)
         if form.is_valid():
+            # 제출된 양식이 유효한 경우, 양식 데이터를 저장하여 새로운 Member 인스턴스를 생성
             member = form.save()
 
             # 폴더 생성
@@ -88,25 +78,39 @@ def signup(request):
             folder_path = os.path.join('index', folder_name)
             os.makedirs(folder_path)
 
-            return redirect('home')  # 회원 가입 성공 시 home 페이지로 리다이렉트
+            # SHfile에 있는 파일들을 복사해서 본인의 id 폴더 안에 복사
+            shfile_path = 'SHfile'  # SHfile 경로를 적절히 수정
+
+            # SHfile의 모든 파일을 id 폴더로 복사
+            for filename in os.listdir(shfile_path):
+                file_path = os.path.join(shfile_path, filename)
+                if os.path.isfile(file_path):
+                    destination_file_path = os.path.join(folder_path, filename)
+                    shutil.copy(file_path, destination_file_path)
+
+            return redirect('login')  # 회원 가입 성공 시 login 페이지로 리다이렉트
     else:
         form = MemberForm()
 
     return render(request, 'signup.html', {'form': form})
 
-def check_existing_id(request):
-    id = request.GET.get('id', '')
-    exists = Member.objects.filter(id=id).exists()  # 사용자 모델에 따라서 확인 필요
-    return JsonResponse({'exists': exists})
+def start_docker(request):
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            # 사용자의 ID를 현재 접속중인 사용자의 ID로 변경
+            user_id = request.user.member.id
+            print(user_id)
 
-def check_existing_email(request):
-    email = request.GET.get('email', '')
-    exists = Member.objects.filter(email=email).exists()  # 사용자 모델에 따라서 확인 필요
-    return JsonResponse({'exists': exists})
+            script_path = f'/index/{user_id}/3tierinstall.sh'
 
+            try:
+                subprocess.run(['bash', script_path], check=True)
+                return HttpResponse("성공적으로 실행되었습니다.")
+            except subprocess.CalledProcessError as e:
+                return HttpResponse(f"Error starting Docker: {e}", status=500)
 
-def success(request):
-    return render(request, 'success.html')  # success.html 템플릿 파일을 렌더링하도록 변경
+    return render(request, 'test.html')  # your_template.html은 실제 템플릿 파일명으로 변경해야 합니다.
 
+     
 def test(request):
     return render(request, 'test.html')
