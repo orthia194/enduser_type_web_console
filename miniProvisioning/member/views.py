@@ -1,16 +1,14 @@
-from logging.config import IDENTIFIER
 import os , shutil , subprocess
 from .forms import MemberForm
-from .models import Member 
+from .models import Member
 from django.shortcuts import render, redirect
-from django.http import  JsonResponse , HttpResponse
-from decouple import config
-from django.contrib.auth.views import LoginView
+from django.http import  HttpResponseForbidden, JsonResponse , HttpResponse
 from django.contrib import messages
-from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password ,make_password
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from adminapp.views import list_ec2_instances
 
 @csrf_exempt
 def loginCheck(request):
@@ -23,7 +21,7 @@ def loginCheck(request):
         myID = getUserInfoforID.id
         if _ID == 'admin' and check_password(_PASSWORD, getUserInfoforID.password):
             request.session['username'] = _ID
-            return admin_view(request)
+            return list_ec2_instances(request)
         elif check_password(_PASSWORD, getUserInfoforID.password):
             # 안전하게 사용자 ID 전달
             return render(request, 'test.html', {'user_id': myID})
@@ -41,7 +39,6 @@ def admin_view(request):
         users['users'] = Member.objects.all()
         return render(request, 'admin_view.html', users)
     else:
-        print("abd")
         messages.error(request, '권한이 없습니다.')
     return redirect('login')
 
@@ -53,12 +50,23 @@ def delete_user(request):
 
         # Get the folder path and delete it
         folder_name = str(member.id)
-        print(folder_name)
-        folder_path = os.path.join('index', folder_name)
-        print(folder_path)
+        home_folder_path = os.path.join('/home', folder_name)  # 리눅스 홈 디렉터리에 위치한 폴더 경로
+        index_folder_path = os.path.join('./index', folder_name)
+        print(home_folder_path)
+        print(index_folder_path)
+        print("Current working directory:", os.getcwd())
+        # ./index/ 디렉터리에 위치한 폴더 경로
 
-        if os.path.exists(folder_path):
-            shutil.rmtree(folder_path)
+        # Delete folders if they exist\
+        if os.path.exists(index_folder_path):
+            shutil.rmtree(index_folder_path)
+        if os.path.exists(home_folder_path):
+            shutil.rmtree(home_folder_path)
+       
+
+        # Delete the Linux user
+        linux_username = str(member.id)
+        subprocess.run(f'sudo userdel -r {linux_username}', shell=True)
 
         # Delete the member
         member.delete()
@@ -96,6 +104,15 @@ def signup(request):
                     destination_file_path = os.path.join(folder_path, filename)
                     shutil.copy(file_path, destination_file_path)
 
+            # Docker 컨테이너 생성
+            container_name = f'{username}'
+            docker_image = 'ubuntu:latest'  # 적절한 Docker 이미지로 수정
+            com = f'docker run -d --name {container_name} {docker_image} tail -f /dev/null'
+            print(com)
+            subprocess.run(com, shell=True)
+            
+
+
             return redirect('login')  # 회원 가입 성공 시 login 페이지로 리다이렉트
     else:
         form = MemberForm()
@@ -105,7 +122,6 @@ def signup(request):
 def start_docker(request):
     # 사용자의 ID를 가져오기
     user_id = request.POST.get('id')
-    print(user_id)
     
     # (optional) 사용자 객체 전체를 가져오려면
     user = request.user
@@ -113,15 +129,60 @@ def start_docker(request):
      #여기서 user_id를 템플릿으로 전달하거나 다른 로직에 활용할 수 있음
     print("Current working directory:", os.getcwd())
     if request.method == 'POST':
-         script_path = f'./index/{user_id}/3tierinstall.sh'
+         
+        user_folder_path = f'./index/{user_id}'
+        os.chdir(user_folder_path)
+    
+        script_path = f'./3tierinstall.sh'
 
-         try: 
+        try: 
             subprocess.run(['/bin/bash', script_path], check=True)
             return HttpResponse("성공적으로 실행되었습니다.")
-         except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError as e:
             return HttpResponse(f"Error starting Docker: {e}", status=500)
 
     return render(request, 'test.html', {'user_id': user_id})  # your_template.html은 실제 템플릿 파일명으로 변경해야 합니다.
+
+@login_required
+def connect_container(request, container_name):
+    username = str(request.user.id)
+    
+    if container_name != f'{username}_container':
+        # 현재 로그인한 사용자와 컨테이너의 이름이 일치하지 않으면 접속 거부
+        print('비정상적인 접속 감지')
+        return HttpResponseForbidden("본인의 아이디로된 컨테이너는 본인의 아이디로만 접속이 가능합니다.")
+
+    # Docker exec 명령어를 사용하여 컨테이너 내부에 접속
+    exec_command = f'docker exec -it {container_name} /bin/bash'
+    subprocess.run(exec_command, shell=True)
+    print("컨테이너 접속 완료")
+    return HttpResponse("컨테이너에 접속하였습니다.")
+
+@csrf_exempt
+def reset_password(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('id')
+        return render(request, 'reset_password.html', {'user_id': user_id })
+    else:
+        return redirect('admin_view')
+    
+@csrf_exempt
+def perform_password_reset(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password == confirm_password:
+            member = member.objects.get(employee_number=employee_number)
+            member.password = make_password(new_password)
+            member.save()
+            return redirect('admin_view')
+        else:
+            # Passwords don't match, handle appropriately (redirect to an error page or show a message)
+            return redirect('admin_view')
+    else:
+        return redirect('admin_view')
 
      
 def test(request):

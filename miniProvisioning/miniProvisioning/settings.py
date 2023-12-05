@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import logging
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -41,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'adminapp',
-    'member'
+    'member',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -52,14 +54,19 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    # 다른 도메인도 추가할 수 있음
+]
 ROOT_URLCONF = 'miniProvisioning.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        #'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],#2023-12-05 15:09추가된 파일
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -137,8 +144,7 @@ STATICFILES_DIRS = [
 
 
 STATIC_URL = '/static/'
-#STATIC_ROOT = [os.path.join(BASE_DIR, 'static'),
-#]
+STATIC_ROOT = '/home/project/miniProvisioning/static_root/'
 # STATICFILES_STORAGE = 'sass_processor.storage.PipelineStorage'
 # STATICFILES_FINDERS = [
 #     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -149,3 +155,22 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/home/project/logfile.log',  # 로그 파일 경로 지정
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

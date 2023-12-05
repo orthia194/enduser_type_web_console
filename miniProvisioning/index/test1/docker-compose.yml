@@ -1,0 +1,45 @@
+version: "3.0"
+
+services:
+  web:
+    container_name: Main_Web_Console
+    image: nginx
+    volumes:
+      - ./web/conf/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - ":80"
+    depends_on:
+      - was
+
+  was:
+    container_name: Main_Was_Console
+    image: tomcat
+    build:
+      context: ./dockers
+      dockerfile: dockerfile.was
+    volumes:
+      - ./was/data:/usr/local/tomcat/webapps/ROOT
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  db:
+    container_name: Main_DB_Console
+    image: mariadb
+    build:
+      context: ./dockers
+      dockerfile: dockerfile.db
+    volumes:
+      - ./db/data:/var/lib/mysql
+    environment:
+      MARIADB_ROOT_PASSWORD: abcd
+
+  phpmyadmin:
+    container_name: Main_PHP_Console
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 9090:8080
+    environment:
+      - PMA_ARBITRARY=1
