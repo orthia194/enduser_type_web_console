@@ -76,15 +76,10 @@
   <div>
     <label for="email">Email:</label>
     <div style="display: flex;">
-        <input type="text" id="email" name="email" required placeholder="이메일 주소를 입력하세요">
-        <select name="emailDomain" id="emailDomain">
-            <option value="@gmail.com">@gmail.com</option>
-            <option value="@naver.com">@naver.com</option>
-            <!-- 다른 메일 서비스도 필요에 따라 추가할 수 있습니다 -->
-        </select>
+        <input type="email" id="email" name="email" required placeholder="이메일 주소를 입력하세요">
     </div>
     <p id="email-error" class="error-message"></p>
-</div>
+  </div>
   
   <div>
     <label for="password">Password:</label>

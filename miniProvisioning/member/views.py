@@ -47,6 +47,14 @@ def delete_user(request):
     if request.method == 'POST':
         employee_number = request.POST.get('employee_number')
         member = Member.objects.get(employee_number=employee_number)
+  
+        # Get the Docker container name based on the member's ID
+        container_name = str(member.id)
+
+        # Stop and remove the Docker container
+        rm = f'docker rm -f {container_name}'
+        print(rm)
+        subprocess.run(rm, shell=True)
 
         # Get the folder path and delete it
         folder_name = str(member.id)
@@ -62,11 +70,11 @@ def delete_user(request):
             shutil.rmtree(index_folder_path)
         if os.path.exists(home_folder_path):
             shutil.rmtree(home_folder_path)
-       
-
+        
         # Delete the Linux user
         linux_username = str(member.id)
-        subprocess.run(f'sudo userdel -r {linux_username}', shell=True)
+        delUser = f'sudo userdel -r {linux_username}'
+        subprocess.run(delUser, shell=True)
 
         # Delete the member
         member.delete()
@@ -94,7 +102,7 @@ def signup(request):
             folder_name = username
             folder_path = os.path.join('index', folder_name)
             os.makedirs(folder_path)
-
+            
             # SHfile의 파일들을 id 폴더로 복사
             shfile_path = 'SHfile'  # SHfile 경로를 적절히 수정
 
@@ -108,12 +116,17 @@ def signup(request):
             container_name = f'{username}'
             docker_image = 'ubuntu:latest'  # 적절한 Docker 이미지로 수정
             com = f'docker run -d --name {container_name} {docker_image} tail -f /dev/null'
-            print(com)
             subprocess.run(com, shell=True)
-            
 
+            # docker 권한 주기
+            give_permission = f'sudo usermod -aG docker {container_name}'
 
-            return redirect('login')  # 회원 가입 성공 시 login 페이지로 리다이렉트
+            print(give_permission)
+          
+            subprocess.run(give_permission, shell=True)
+           
+
+            return redirect('admin_view')  # 회원 가입 성공 시 login 페이지로 리다이렉트
     else:
         form = MemberForm()
 
@@ -161,20 +174,19 @@ def connect_container(request, container_name):
 @csrf_exempt
 def reset_password(request):
     if request.method == 'POST':
-        user_id = request.POST.get('id')
-        return render(request, 'reset_password.html', {'user_id': user_id })
+        employee_number = request.POST.get('employee_number')
+        return render(request, 'reset_password.html', {'employee_number': employee_number })
     else:
         return redirect('admin_view')
     
-@csrf_exempt
 def perform_password_reset(request):
     if request.method == 'POST':
-        user_id = request.POST.get('user_id')
+        employee_number = request.POST.get('employee_number')
         new_password = request.POST.get('new_password')
         confirm_password = request.POST.get('confirm_password')
 
-        if new_password == confirm_password:
-            member = member.objects.get(employee_number=employee_number)
+        if new_password == confirm_password:    
+            member = Member.objects.get(employee_number=employee_number)
             member.password = make_password(new_password)
             member.save()
             return redirect('admin_view')
