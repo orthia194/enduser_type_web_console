@@ -5,6 +5,7 @@ from . import views
 from . import utils
 from django.contrib.auth import views as auth_views
 from adminapp.views import list_ec2_instances
+from .views import start_container
 
 urlpatterns = [
     path('delete_user/', delete_user, name='delete_user'),
@@ -17,4 +18,5 @@ urlpatterns = [
     path('reset_password', reset_password, name='reset_password'),
     path('perform_password_reset', perform_password_reset, name='perform_password_reset'),
     path('instance_list/', list_ec2_instances, name='instance_list'),
+    path('start_container/', start_container, name='start_container'),
 ]

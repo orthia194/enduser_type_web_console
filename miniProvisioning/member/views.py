@@ -1,4 +1,4 @@
-import os , shutil , subprocess
+import os , shutil , subprocess, docker
 from .forms import MemberForm
 from .models import Member
 from django.shortcuts import render, redirect
@@ -7,8 +7,9 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password ,make_password
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from adminapp.views import list_ec2_instances
+
+
 
 @csrf_exempt
 def loginCheck(request):
@@ -65,15 +66,16 @@ def delete_user(request):
         print("Current working directory:", os.getcwd())
         # ./index/ 디렉터리에 위치한 폴더 경로
 
-        # Delete folders if they exist\
+        # home디렉터리와 index디렉토리의 id 폴더삭제
         if os.path.exists(index_folder_path):
             shutil.rmtree(index_folder_path)
         if os.path.exists(home_folder_path):
             shutil.rmtree(home_folder_path)
         
-        # Delete the Linux user
+        # 리눅스 유저 삭제
         linux_username = str(member.id)
         delUser = f'sudo userdel -r {linux_username}'
+        print('리눅스 유저 이름 :', delUser)
         subprocess.run(delUser, shell=True)
 
         # Delete the member
@@ -83,54 +85,6 @@ def delete_user(request):
     else:
         return JsonResponse({'message': 'Invalid request method'})
 
-def signup(request):
-    if request.method == 'POST':
-        form = MemberForm(request.POST)
-        if form.is_valid():
-            # 양식 데이터 저장 및 Member 인스턴스 생성
-            member = form.save()
-
-            # 회원의 id를 사용하여 Linux 사용자 생성
-            username = str(member.id)
-            password = form.cleaned_data['password']  # 이 부분은 실제 비밀번호 필드 이름으로 수정
-            subprocess.run(f'sudo adduser --disabled-password --gecos "" {username}', shell=True)
-
-            # 비밀번호 설정
-            subprocess.run(f'sudo echo "{username}:{password}" | sudo chpasswd', shell=True)
-
-            # 폴더 생성
-            folder_name = username
-            folder_path = os.path.join('index', folder_name)
-            os.makedirs(folder_path)
-            
-            # SHfile의 파일들을 id 폴더로 복사
-            shfile_path = 'SHfile'  # SHfile 경로를 적절히 수정
-
-            for filename in os.listdir(shfile_path):
-                file_path = os.path.join(shfile_path, filename)
-                if os.path.isfile(file_path):
-                    destination_file_path = os.path.join(folder_path, filename)
-                    shutil.copy(file_path, destination_file_path)
-
-            # Docker 컨테이너 생성
-            container_name = f'{username}'
-            docker_image = 'ubuntu:latest'  # 적절한 Docker 이미지로 수정
-            com = f'docker run -d --name {container_name} {docker_image} tail -f /dev/null'
-            subprocess.run(com, shell=True)
-
-            # docker 권한 주기
-            give_permission = f'sudo usermod -aG docker {container_name}'
-
-            print(give_permission)
-          
-            subprocess.run(give_permission, shell=True)
-           
-
-            return redirect('admin_view')  # 회원 가입 성공 시 login 페이지로 리다이렉트
-    else:
-        form = MemberForm()
-
-    return render(request, 'signup.html', {'form': form})
 
 def start_docker(request):
     # 사용자의 ID를 가져오기
@@ -195,7 +149,123 @@ def perform_password_reset(request):
             return redirect('admin_view')
     else:
         return redirect('admin_view')
+    
+def signup(request):
+    if request.method == 'POST':
+        form = MemberForm(request.POST)
+        if form.is_valid():
+            # 양식 데이터 저장 및 Member 인스턴스 생성
+            member = form.save()
 
+            # 회원의 id를 사용하여 Linux 사용자 생성
+            username = str(member.id)
+            password = form.cleaned_data['password']  # 이 부분은 실제 비밀번호 필드 이름으로 수정
+            subprocess.run(f'sudo adduser --disabled-password --gecos "" {username}', shell=True)
+
+            # 비밀번호 설정
+            subprocess.run(f'sudo echo "{username}:{password}" | sudo chpasswd', shell=True)
+
+            # 폴더 생성
+            folder_name = username
+            folder_path = os.path.join('index', folder_name)
+            os.makedirs(folder_path)
+            
+            # SHfile의 파일들을 id 폴더로 복사
+            shfile_path = 'SHfile'  # SHfile 경로를 적절히 수정
+
+            for filename in os.listdir(shfile_path):
+                file_path = os.path.join(shfile_path, filename)
+                if os.path.isfile(file_path):
+                    destination_file_path = os.path.join(folder_path, filename)
+                    shutil.copy(file_path, destination_file_path)
+
+            # Docker 컨테이너 생성
+            container_name = f'{username}'
+            docker_image = 'ubuntu:latest'  # 적절한 Docker 이미지로 수정
+            com = f'docker run -d --name {container_name} {docker_image} tail -f /dev/null'
+            subprocess.run(com, shell=True)
+
+            # docker 권한 주기
+            give_permission = f'sudo usermod -aG docker {container_name}'
+
+            print(give_permission)
+          
+            subprocess.run(give_permission, shell=True)
+
+            # 리눅스 아이디가 생성된 이후 con_terminal.tar.gz를 복사해서 넣은 후 압축을 푼다음 node server.js를 실행
+            con_terminal_path = '/home/' + username
+            con_terminal_tar_path = './con_terminal.tar.gz'
+            # con_terminal.tar.gz의 실제 경로로 수정
+            shutil.copy(con_terminal_tar_path, con_terminal_path)
+            
+            # con_terminal.tar.gz 압축 해제
+            GZ = f'tar -xzvf {os.path.join(con_terminal_path, "con_terminal.tar.gz")} -C {con_terminal_path}'
+            subprocess.run(GZ, shell=True)
+
+            # node server.js 실행
+            log_file_path = f'/home/project/miniProvisioning/index/{username}/{username}_node_log.txt'
+            Nojs = f'cd {con_terminal_path}/con_terminal && sudo -u {username} node server.js > {log_file_path} 2>&1 &'
+            subprocess.run(Nojs, shell=True)
+           
+
+            return redirect('admin_view')  # 회원 가입 성공 시 login 페이지로 리다이렉트
+    else:
+        form = MemberForm()
+
+    return render(request, 'signup.html', {'form': form})
      
+@login_required
 def test(request):
-    return render(request, 'test.html')
+    # 로그인한 사용자의 사용자명 가져오기
+    user_id = request.user.id  # 사용자의 ID를 가져오는 방법으로 수정
+
+    # 로그 파일 경로 설정
+    log_file_path = f'/home/project/miniProvisioning/index/{user_id}/{user_id}_node_log.txt'
+    read = f'cat {log_file_path}'
+
+    # 컨텍스트에 로그 내용 추가
+    with open(log_file_path, 'r') as log_file:
+        log_content = log_file.read()
+
+    return render(request, 'test.html', {'log_content': log_content})
+ 
+def execute_script(script_path, user_id):
+    try:
+        # 스크립트 실행 및 결과 획득
+        # user_folder_path를 절대 경로로 설정
+        user_folder_path = os.path.abspath(f'./index/{user_id}')
+        
+        # 환경 변수 설정
+        env = os.environ.copy()
+        env["WEB_USER_ID"] = user_id
+
+        # subprocess 모듈을 사용하여 스크립트 실행
+        result = subprocess.check_output(['bash', script_path], text=True, env=env, cwd=user_folder_path)
+
+        return result
+    except subprocess.CalledProcessError as e:
+        # 스크립트 실행 중 오류가 발생한 경우 처리
+        return f"에러: {e}"
+
+def start_container(request):
+    # 사용자의 ID를 가져오기
+    user_id = request.POST.get('id')
+
+    # 여기서 user_id를 템플릿으로 전달하거나 다른 로직에 활용할 수 있음
+    print("현재 작업 디렉토리:", os.getcwd())
+    if request.method == 'POST':
+        # 실행할 스크립트 경로 설정
+        script_path = os.path.abspath(f'./index/{user_id}/read_log.sh')
+        print(script_path)
+
+        # 스크립트 실행 및 결과 얻기
+        script_result = execute_script(script_path, user_id)
+
+        # 템플릿에 전달할 데이터 설정
+        context = {
+            'user_id': user_id,
+            'script_result': script_result,
+        }
+
+        # test.html 템플릿을 렌더링하여 응답
+        return render(request, 'test.html', context)

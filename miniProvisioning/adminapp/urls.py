@@ -1,7 +1,6 @@
 from django.urls import path
 from django.views.generic import TemplateView  # TemplateView import 추가
 from . import views
-from adminapp import views as adminapp_views
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='base.html'), name='home'),
