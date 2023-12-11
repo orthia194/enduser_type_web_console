@@ -1,9 +1,8 @@
 import json
 import boto3
-import sys
-#sys.path.insert(0, '/path/to/your/member/folder')
 import requests
 import paramiko
+import subprocess
 from member.models import Member
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -104,7 +103,7 @@ def stop_instances(request):
         aws_access_key = config('your_aws_access_key')
         aws_secret_key = config('your_aws_secret_key')
         region_name = 'ap-northeast-2'
-
+        
         ec2 = boto3.client(
             'ec2',
             aws_access_key_id=aws_access_key,
@@ -171,6 +170,51 @@ def list_ec2_instances(request):
 
     return render(request, 'instance_list.html', {'instances': instances, 'instance_names': instance_names})
 
+def copy_files_to_server():
+    scp_commands = [
+        'sudo scp -o StrictHostKeyChecking=no -i /home/ubuntu/admin.pem -r /home/ubuntu/webconsole/ ubuntu@52.79.248.11:/home/ubuntu/',
+        'sudo scp -o StrictHostKeyChecking=no -i /home/ubuntu/admin.pem -r /etc/systemd/system/orthia_nodejs.service ubuntu@52.79.248.11:/tmp/'
+    ]
+
+    for command in scp_commands:
+        subprocess.run(command, shell=True, check=True)
+    
+def execute_remote_commands():
+    ssh_key_path = '/home/ubuntu/admin.pem'
+    server_ip = '52.79.248.11'
+    ssh_client = paramiko.SSHClient()
+    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh_client.connect(hostname=server_ip, username='ubuntu', key_filename=ssh_key_path)
+
+    commands = [
+        'sudo apt update',
+        'sudo apt install nodejs -y',
+        'sudo apt install npm -y',
+        'sudo npm install express socket.io node-pty xterm',
+        'sudo mv /tmp/orthia_nodejs.service /etc/systemd/system/',
+        'sudo systemctl daemon-reload',
+        'sudo systemctl enable orthia_nodejs.service',
+        'sudo systemctl start orthia_nodejs.service'
+    ]
+
+    for command in commands:
+        stdin, stdout, stderr = ssh_client.exec_command(command)
+        output = stdout.read().decode('utf-8')
+        errors = stderr.read().decode('utf-8')
+        if output:
+            print(f"Output: {output}")
+        if errors:
+            print(f"Errors: {errors}")
+
+    ssh_client.close()
+    
+def copy_files_view(request):
+    copy_files_to_server()
+    return HttpResponse("Files copied to server successfully.")
+
+def execute_commands_view(request):
+    execute_remote_commands()
+    return HttpResponse("Remote commands executed successfully.")
 
 #추가된 코드
 def api_endpoint(request):

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/common.css?v=15">
+    <link rel="stylesheet" href="/static/css/common.css?v=20">
     <title>EC2 인스턴스</title>
 </head>
 <body>
@@ -21,6 +21,8 @@
         <div class="refreshButton"><button id="refreshButton">새로고침</button></div>
     </article>
     <section class="main_box clearFix">
+        <button onclick="copyFiles()">Copy Files to Server</button>
+        <button onclick="executeCommands()">Execute Remote Commands</button>
             <ul>
                 {% for reservation in instances.Reservations %}
                 {% for instance in reservation.Instances %}
@@ -28,7 +30,6 @@
                 <li class="clearFix">
                     <div class="checkbox-container">
                         <input type="checkbox" name="selected_instances" value="{{ instance.InstanceId }}">
-                        <a href="http://{% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}:3000">d</a>
                     </div>
                     <div>
                         {% for tag in instance.Tags %}
@@ -41,6 +42,7 @@
                     <p><span>Start Time : </span><span>{{ instance.LaunchTime|date:"Y.m.d H:i:s" }}</span></p>
                     <p><span style="margin-right: 10%;">Customer : {% for tag in instance.Tags %}{% if tag.Key == 'cus_name' %}{{ tag.Value }}{% endif %}{% endfor %}</span><span>Phone Number : {% for tag in instance.Tags %}{% if tag.Key == 'cus_pnumber' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
                     <p><span>Address : </span><span>{% for tag in instance.Tags %}{% if tag.Key == 'cus_addr' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
+                    <p><a href="http://{% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}:3000">웹 콘솔</a></p>
                     <p class="clearFix {% if instance.State.Name == 'running' %}running
                             {% elif instance.State.Name == 'stopped' %}stopped
                             {% elif instance.State.Name == 'shutting-down' %}shutting-down
@@ -101,6 +103,20 @@
                 // 적어도 하나의 인스턴스를 선택하라는 메시지를 표시합니다
                 alert('적어도 하나의 인스턴스를 선택해주세요.');
             }
+        }
+
+        function copyFiles() {
+            fetch('/copy_files/')
+                .then(response => response.text())
+                .then(data => console.log(data))
+                .catch(error => console.error(error));
+        }
+    
+        function executeCommands() {
+            fetch('/execute_commands/')
+                .then(response => response.text())
+                .then(data => console.log(data))
+                .catch(error => console.error(error));
         }
 
     </script>

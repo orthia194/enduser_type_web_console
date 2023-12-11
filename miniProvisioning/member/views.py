@@ -71,11 +71,18 @@ def delete_user(request):
             shutil.rmtree(index_folder_path)
         if os.path.exists(home_folder_path):
             shutil.rmtree(home_folder_path)
-        
-        # 리눅스 유저 삭제
+
+        # 리눅스 유저 가져오기
         linux_username = str(member.id)
+        print(linux_username)
+
+        # 프로세스 종료
+        pkill = f'killall -u {linux_username}'
+        subprocess.run(pkill, shell=True)
+
+        # 리눅스 유저 삭제
         delUser = f'sudo userdel -r {linux_username}'
-        print('리눅스 유저 이름 :', delUser)
+        print(delUser)
         subprocess.run(delUser, shell=True)
 
         # Delete the member

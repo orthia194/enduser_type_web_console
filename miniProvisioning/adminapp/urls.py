@@ -14,4 +14,6 @@ urlpatterns = [
     path('api_endpoint/', views.api_endpoint),#추가된코드
     path('terminal/', views.terminal),
     path('adminconsole/terminal', views.terminal, name='terminal'),
+    path('copy_files/', views.copy_files_view, name='copy_files'),
+    path('execute_commands/', views.execute_commands_view, name='execute_commands'),
 ]

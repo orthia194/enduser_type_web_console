@@ -147,6 +147,36 @@ body{
                 }
             }
         }
+        .main_box_create{
+            padding-top: 20px;
+
+            div{
+                padding: 10px 0;
+                box-sizing: border-box;
+
+                span{
+                    display: inline-block;
+                }
+
+                span:nth-of-type(1){
+                    width: 30%;
+                }
+                span:nth-of-type(2){
+                    width: 69%;
+                    border-bottom: 1px solid #eee;
+                }
+            }
+
+            .input_sei{
+                width: 70%;
+                text-align: center;
+                border: 1px solid #333;
+                overflow: hidden;
+                border-radius: 20px;
+                margin: 0 15%;
+                box-sizing: border-box;
+            }
+        }
 
     }
 }
