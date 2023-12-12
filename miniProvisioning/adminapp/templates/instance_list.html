@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/common.css?v=5">
+    <link rel="stylesheet" href="/static/css/common.css?v=21">
     <title>EC2 인스턴스</title>
 </head>
 <body>
@@ -13,29 +13,22 @@
         <h1>EC2 인스턴스 관리</h1>
     </header>
     <article class="instance_menu clearFix">
-        <div><button onclick="terminateSelectedInstances()">삭제</button></div>
-        <div><button onclick="stopSelectedInstances()">중지</button></div>
-        <div><button onclick="startSelectedInstances()">시작</button></div>
+        <div class="admin_view"><a href="{% url 'admin_view' %}">회원 관리</a></div>
+        <div><button onclick="handleInstances('start')">시작</button></div>
+        <div><button onclick="handleInstances('stop')">중지</button></div>
+        <div><button onclick="handleInstances('terminate')">삭제</button></div>        
         <div class="instance_create"><a href="{% url 'instance_create' %}">EC2 생성</a></div>
         <div class="refreshButton"><button id="refreshButton">새로고침</button></div>
     </article>
-<!-- <iframe src="http://15.165.251.209:3000/" width="400" height="400" style="border: none;"></iframe> -->
     <section class="main_box clearFix">
-        <article class="main_left">
-            <ul>
-                <li>ADMIN</li>
-                <li>EC2</li>
-                <li>DOCKER</li>
-            </ul>
-        </article>
-        <article class="main_right">
             <ul>
                 {% for reservation in instances.Reservations %}
                 {% for instance in reservation.Instances %}
-                {% if instance.InstanceId != 'i-094eb0fe81355d190' %}
+                {% if instance.InstanceId != 'i-094eb0fe81355d190' and instance.State.Name != 'terminated' %}
                 <li class="clearFix">
-                    <div>
+                    <div class="checkbox-container">
                         <input type="checkbox" name="selected_instances" value="{{ instance.InstanceId }}">
+                        <button id="runScriptBtn">Run Script</button>
                     </div>
                     <div>
                         {% for tag in instance.Tags %}
@@ -44,63 +37,103 @@
                         {% endif %}
                     {% endfor %}
                     <p><span style="margin-right: 10%;">{{ instance.InstanceId }}</span><span>{{ instance.InstanceType }}</span></p>
-                    <p><span style="margin-right: 10%;">Public : {% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}</span><span>Private : {% if instance.PrivateIpAddress %}{{ instance.PrivateIpAddress }}{% else %}N/A{% endif %}</span></p>
+                    <p><span class="public_ip" style="margin-right: 10%;">Public : {% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}</span><span>Private : {% if instance.PrivateIpAddress %}{{ instance.PrivateIpAddress }}{% else %}N/A{% endif %}</span></p>
                     <p><span>Start Time : </span><span>{{ instance.LaunchTime|date:"Y.m.d H:i:s" }}</span></p>
                     <p><span style="margin-right: 10%;">Customer : {% for tag in instance.Tags %}{% if tag.Key == 'cus_name' %}{{ tag.Value }}{% endif %}{% endfor %}</span><span>Phone Number : {% for tag in instance.Tags %}{% if tag.Key == 'cus_pnumber' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
                     <p><span>Address : </span><span>{% for tag in instance.Tags %}{% if tag.Key == 'cus_addr' %}{{ tag.Value }}{% endif %}{% endfor %}</span></p>
-                    <p class="clearFix {% if instance.State.Name == 'running' %}running{% elif instance.State.Name == 'stopped' %}stopped{% elif instance.State.Name == 'shutting-down' %}shutting-down{% else %}terminated{% endif %}">State : {{ instance.State.Name }}>State : {{ instance.State.Name }}</p>
+                    <p><a href="http://{% if instance.PublicIpAddress %}{{ instance.PublicIpAddress }}{% else %}N/A{% endif %}:3000">웹 콘솔</a></p>
+                    <p class="clearFix {% if instance.State.Name == 'running' %}running
+                            {% elif instance.State.Name == 'stopped' %}stopped
+                            {% elif instance.State.Name == 'shutting-down' %}shutting-down
+                            {% elif instance.State.Name == 'pending' %}pending
+                            {% elif instance.State.Name == 'stopping' %}stopping
+                            {% else %}terminated
+                            {% endif %}">
+                            {% if instance.State.Name == 'running' %}
+                                실행 중
+                            {% elif instance.State.Name == 'stopped' %}
+                                정지됨
+                            {% elif instance.State.Name == 'shutting-down' %}
+                                종료 중
+                            {% elif instance.State.Name == 'pending' %}
+                                시작 중
+                            {% elif instance.State.Name == 'stopping' %}
+                                정지중
+                            {% else %}
+                                종료됨
+                            {% endif %}
+                        </p>
                     </div>
                 </li>
                 {% endif %}
                 {% endfor %}
                 {% endfor %}
             </ul>
-        </article>
     </section>
     <script>
         document.getElementById("refreshButton").addEventListener("click", function() {
             location.reload();
         });
-        function startSelectedInstances() {
+    
+        function handleInstances(action) {
             const selectedInstances = document.querySelectorAll('input[name="selected_instances"]:checked');
             const instanceIds = Array.from(selectedInstances).map(instance => instance.value);
         
-            fetch('/adminconsole/start_instances/', {
-                method: 'POST',
-                body: new URLSearchParams({ 'instanceIds[]': instanceIds }),  // 데이터 형식을 맞춰 전송합니다.
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',  // 폼 데이터로 전송합니다.
-                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF 토큰을 요청 헤더에 포함합니다.
-                },
-            });
+            if (instanceIds.length > 0) {
+                console.log(instanceIds)
+                fetch(`/adminconsole/${action}_instances/`, {
+                    method: 'POST',
+                    body: JSON.stringify({'instanceIds': instanceIds }),  
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                })
+                .then(response => {
+                    // 응답을 여기서 처리하고 필요에 따라 대응합니다
+                    console.log(response);
+                    // 응답에 기반하여 페이지 새로고침이나 UI 업데이트를 수행합니다
+                    //location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            } else {
+                // 적어도 하나의 인스턴스를 선택하라는 메시지를 표시합니다
+                alert('적어도 하나의 인스턴스를 선택해주세요.');
+            }
         }
-        function stopSelectedInstances() {
-            const selectedInstances = document.querySelectorAll('input[name="selected_instances"]:checked');
-            const instanceIds = Array.from(selectedInstances).map(instance => instance.value);
+        document.querySelectorAll("#runScriptBtn").forEach(button => {
+            button.addEventListener("click", function() {
+                const parentElement = this.closest("li");
+                const publicIP = parentElement.querySelector(".public_ip");
+                if (publicIP) {
+                    const publicIPText = publicIP.textContent.trim();
+                    const ip_address = publicIPText.replace("Public :", "").trim();
+                    console.log(ip_address);
         
-            fetch('/adminconsole/stop_instances/', {
-                method: 'POST',
-                body: new URLSearchParams({ 'instanceIds[]': instanceIds }),  // 데이터 형식을 맞춰 전송합니다.
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',  // 폼 데이터로 전송합니다.
-                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF 토큰을 요청 헤더에 포함합니다.
-                },
+                    // AJAX 요청 보내기
+                    fetch(`/adminconsole/run_script/`, {
+                        method: 'POST',
+                        body: JSON.stringify({'ip_address': ip_address }), // JSON으로 데이터 전송
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}' // Django에서 CSRF 토큰이 필요할 경우 추가해야 합니다.
+                        }
+                    })
+                    .then(response => {
+                        // 응답에 대한 처리
+                        // 예: 성공적으로 전송되었다는 메시지 출력 등
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
             });
-        }
+        });
         
-        function terminateSelectedInstances() {
-            const selectedInstances = document.querySelectorAll('input[name="selected_instances"]:checked');
-            const instanceIds = Array.from(selectedInstances).map(instance => instance.value);
         
-            fetch('/adminconsole/terminate_instances/', {
-                method: 'POST',
-                body: new URLSearchParams({ 'instanceIds[]': instanceIds }),  // 데이터 형식을 맞춰 전송합니다.
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',  // 폼 데이터로 전송합니다.
-                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF 토큰을 요청 헤더에 포함합니다.
-                },
-            });
-        }
+
     </script>
 </section>
 </body>

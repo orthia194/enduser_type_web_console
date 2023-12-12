@@ -1,14 +1,29 @@
+import json
 import boto3
-import subprocess
 import requests
-from django.shortcuts import render,redirect
+import paramiko
+import subprocess
+from member.models import Member
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 from django.http import HttpResponse
 from django.http import JsonResponse
 from botocore.exceptions import ClientError
-from decouple import config 
+from decouple import config
 # EC2 인스턴스를 생성하고, 해당 인스턴스에 스크립트를 실행하는 함수
-def instance_create(request):
-    return render(request, 'instance_create.html')
+#def instance_create(request):
+#    return render(request, 'instance_create.html')
+
+def admin_ec2_view(request):
+    if request.session.get('username') == 'admin':
+        users = {}
+        # 세션에서 'username' 키의 값이 'admin'인 경우
+        users['users'] = Member.objects.all()
+        return render(request, 'instance_create.html', users)
+    else:
+        messages.error(request, '권한이 없습니다.')
+    return redirect('login')
 
 def start_ec2_instance(request):
     aws_access_key = config('your_aws_access_key')
@@ -56,8 +71,10 @@ def start_ec2_instance(request):
 
 def start_instances(request):
     if request.method == 'POST':
-        instance_ids = request.POST.getlist('instanceIds[]')  # JSON 데이터로 전송된 instanceIds를 가져옵니다.
-
+        print(request.POST)
+        data = json.loads(request.body)
+        instance_ids = data.get('instanceIds')
+        #instance_ids = request.POST.getlist('instanceIds')  # JSON 데이터로 전송된 instanceIds를 가져옵니다.
         aws_access_key = config('your_aws_access_key')
         aws_secret_key = config('your_aws_secret_key')
         region_name = 'ap-northeast-2'
@@ -80,12 +97,14 @@ def start_instances(request):
 
 def stop_instances(request):
     if request.method == 'POST':
-        instance_ids = request.POST.getlist('instanceIds[]')  # JSON 데이터로 전송된 instanceIds를 가져옵니다.
-
+        print(request.POST)
+        data = json.loads(request.body)
+        instance_ids = data.get('instanceIds')
+        #instance_ids = request.POST.getlist('instanceIds')  # JSON 데이터로 전송된 instanceIds를 가져옵니다.
         aws_access_key = config('your_aws_access_key')
         aws_secret_key = config('your_aws_secret_key')
         region_name = 'ap-northeast-2'
-
+        
         ec2 = boto3.client(
             'ec2',
             aws_access_key_id=aws_access_key,
@@ -104,8 +123,10 @@ def stop_instances(request):
 
 def terminate_instances(request):
     if request.method == 'POST':
-        instance_ids = request.POST.getlist('instanceIds[]')  # JSON 데이터로 전송된 instanceIds를 가져옵니다.
-
+        print(request.POST)
+        data = json.loads(request.body)
+        instance_ids = data.get('instanceIds')
+        #instance_ids = request.POST.getlist('instanceIds[]')  # JSON 데이터로 전송된 instanceIds를 가져옵니다.
         aws_access_key = config('your_aws_access_key')
         aws_secret_key = config('your_aws_secret_key')
         region_name = 'ap-northeast-2'
@@ -150,16 +171,34 @@ def list_ec2_instances(request):
 
     return render(request, 'instance_list.html', {'instances': instances, 'instance_names': instance_names})
 
+def run_script(request):
+    if request.method == 'POST':
+        try:
+            # POST로 받은 JSON 데이터 추출
+            data = json.loads(request.body)
+            ip_address = data.get('ip_address')  # JSON 데이터에서 필요한 값 추출
+
+            # 쉘 스크립트 실행
+            subprocess.run(['bash', '/home/project/setup_script.sh', ip_address], check=True)
+
+            return JsonResponse({"message": "Script executed successfully"})
+        except Exception as e:
+            return JsonResponse({"message": f"Error: {e}"}, status=500)
+
+    return JsonResponse({"message": "Invalid request method"}, status=400)
+
 #추가된 코드
 def api_endpoint(request):
     data = {"message": "Hello, Node.js!"}
     return JsonResponse(data)
 def terminal(request):
     # Node.js 서버의 URL 설정
-    nodejs_url = 'http://127.0.0.1:3000'
+    nodejs_url = 'http://15.165.251.209:3000'
 
     # Node.js 서버로 GET 요청을 보내서 결과를 받아옴
     response = requests.get(nodejs_url)
 
     # Node.js 서버의 응답을 HttpResponse로 반환
     return HttpResponse(response.text)
+def index(request):
+    return render(request, 'index.html')

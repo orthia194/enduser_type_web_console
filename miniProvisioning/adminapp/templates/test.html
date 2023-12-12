@@ -4,20 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        form {
+            margin-bottom: 15px;
+        }
+
+        input[type="submit"] {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            margin-top: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #1e88e5;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <form action="{% url 'start_ec2_instance' %}" method="post">
         {% csrf_token %}
-        <input type="submit" value="Start_EC2_Instance">
+        <input type="submit" value="Start EC2 Instance">
     </form>
+    <!--
     <form action="{% url 'start_docker' %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="id" value="{{ user_id }}">
-        <input type="submit" value="start_docker">
+        <input type="submit" value="Start Docker">
     </form>
-    <p>User ID: {{ user_id }}</p>
+    -->
+    <form action="{% url 'start_container' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ user_id }}">
+        <input type="submit" value="Start Container">
+    </form>
+    <p>컨테이너 접속: <a href="{{ script_result }}" target="_blank">{{ script_result }}</a></p>
+    <p><a href="{% url 'login' %}">Home</a></p>
 </body>
 </html>
+
 
 
 

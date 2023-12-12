@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>컨테이너 콘솔</title>
+</head>
+<body>
+    <pre>{{ logs|safe }}</pre>
+</body>
+</html>

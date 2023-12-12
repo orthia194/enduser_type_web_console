@@ -2,18 +2,64 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>회원가입</title>
-    <!-- 여기에 CSS 링크를 추가하세요 -->
-    <style>
-        .error-message {
-            color: red;
-        }
-    </style>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>회원가입</title>
+        <!-- 여기에 CSS 링크를 추가하세요 -->
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                text-align: center;
+                margin: 0;
+                padding: 0;
+            }
+    
+            h2 {
+                color: #333;
+            }
+    
+            form {
+                max-width: 300px;
+                margin: 20px auto;
+                padding: 20px;
+                background-color: #fff;
+                border-radius: 5px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+    
+            label {
+                display: block;
+                margin-bottom: 8px;
+                color: #555;
+            }
+    
+            input, select {
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 16px;
+                box-sizing: border-box;
+            }
+    
+            .error-message {
+                color: red;
+                margin-top: -10px;
+                margin-bottom: 16px;
+            }
+    
+            input[type="submit"] {
+                background-color: #4caf50;
+                color: #fff;
+                cursor: pointer;
+            }
+    
+            input[type="submit"]:hover {
+                background-color: #45a049;
+            }
+        </style>
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    </head>
 <body>
 
 <h2>회원가입</h2>
@@ -29,7 +75,9 @@
   
   <div>
     <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required>
+    <div style="display: flex;">
+        <input type="email" id="email" name="email" required placeholder="이메일 주소를 입력하세요">
+    </div>
     <p id="email-error" class="error-message"></p>
   </div>
   
