@@ -54,9 +54,6 @@ body {
   color: #333;
   font-size: 20px;
   padding: 1%;
-  -webkit-user-select: none;
-     -moz-user-select: none;
-          user-select: none;
 }
 body .box_center {
   margin: 0 auto;
